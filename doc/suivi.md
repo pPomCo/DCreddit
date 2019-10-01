@@ -27,3 +27,16 @@
         - Modèle vectoriel (TFxIDF)
         - PyLucene
     - Confirmation de la démarche de gestion de projet
+
+#### Mardi 01/10
+
+- **Répartition des tâches (sprint 1)**
+    - Index simple (type FRI)
+    - Reflexion : quels index réaliser pour le sprint 2 ?
+    - Sample de la DB
+
+- **Identification issues**
+    - Déploiement (moteur d'accès) -> interfaçage avec les autres groupes
+        - Première discussion avec les autres groupes (pas de réponses)
+    - Technos (pylucene) -> libre
+    - Gestion données temporelles -> indexées en tant que méta-données du document
