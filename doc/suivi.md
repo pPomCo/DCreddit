@@ -27,14 +27,14 @@
         - Modèle vectoriel (TFxIDF)
         - PyLucene
     - Confirmation de la démarche de gestion de projet
-
+    
 #### Mardi 01/10
 
-- **Répartition des tâches (sprint 1)**
-    - Index simple (type FRI)
+- **Tâches**
+    - Création d'un échantillon des données
+    - Création d'un premier index (terms -> comments)
     - Reflexion : quels index réaliser pour le sprint 2 ?
-    - Sample de la DB
-
+    
 - **Identification issues**
     - Déploiement (moteur d'accès) -> interfaçage avec les autres groupes
         - Première discussion avec les autres groupes (pas de réponses)
