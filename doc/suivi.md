@@ -27,3 +27,7 @@
         - Modèle vectoriel (TFxIDF)
         - PyLucene
     - Confirmation de la démarche de gestion de projet
+
+- **Tâches**
+    - Création d'un échantillon des données
+    - Création d'un premier index (terms -> comments)
