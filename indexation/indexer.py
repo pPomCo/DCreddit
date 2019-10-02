@@ -1,5 +1,3 @@
-
-
 import sys, os, lucene, threading, time
 
 from java.nio.file import Paths
@@ -14,12 +12,18 @@ from org.apache.lucene.store import SimpleFSDirectory
 
 
 class Indexer(object):
-    """Based on 'samples/IndexFiles.py'"""
+    """Index a collection
+
+    Based on 'samples/IndexFiles.py'"""
+
 
     def __init__(self, storeDir):
+        """Constructor
+
+        storeDir -- path where to save the index"""
 
         if not os.path.exists(storeDir):
-            os.mkdir(storeDire)
+            os.mkdir(storeDir)
 
         store = SimpleFSDirectory(Paths.get(storeDir))
         self.dir = store
@@ -31,28 +35,17 @@ class Indexer(object):
         self.writer = writer
 
 
-    def indexDocs(self, docs):
+    def indexDocs(self, fields, docs):
         """Index documents
+
+        fields -- {name: FieldType} for each indexed field
         docs -- iterable over documents"""
-
-
-        # Field types
-        t1 = FieldType()
-        t1.setStored(True)
-        t1.setTokenized(False)
-        t1.setIndexOptions(IndexOptions.DOCS_AND_FREQS)
-
-        t2 = FieldType()
-        t2.setStored(True)
-        t2.setTokenized(True)
-        t2.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
         # Index each document
         for d in docs:
             doc = Document()
-            doc.add(Field("name", d[0], t1))
-            doc.add(Field("contents", d[1], t2))
-            doc.add(Field("link_id", d[2], t1))
+            for i, (field_name, field_type) in enumerate(fields.items()):
+                doc.add(Field(field_name, d[i], field_type))
             self.writer.addDocument(doc)
 
         # Commit indexation
@@ -63,46 +56,66 @@ class Indexer(object):
 
 
 if __name__ == "__main__":
-    
-    # Test indexing first 1000 rows
-    DB_PATH = '../../database.sqlite'
 
+    # Read command-line arguments
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='Build index on comments and users')
+    parser.add_argument('db', metavar='DB', type=str,
+                        help="path of the sqlite3 database to index")
+    parser.add_argument('storeDir', metavar='storeDir', type=str, nargs='?',
+                        default='index/', help="path where to build index (default: 'index/')")
+    parser.add_argument('rel_name', metavar='relation', type=str, nargs='?',
+                        default="May2015", help="Relation name (default: 'May2015')")
+    args = parser.parse_args()
+
+
+    # Open DB    
     import sqlite3
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(args.db)
     c = conn.cursor()
 
+    # Init lucene
     lucene.initVM()
-    indexer = Indexer('index')
 
 
-    sql_query = """SELECT name, body, link_id FROM May2015 LIMIT 100000"""
-##    for row in c.execute(sql_query):
-##        print(row)
-    indexer.indexDocs(c.execute(sql_query))
+    # Field types
+    t1 = FieldType()
+    t1.setStored(True)
+    t1.setTokenized(False)
+    t1.setIndexOptions(IndexOptions.DOCS_AND_FREQS)
 
+    t2 = FieldType()
+    t2.setStored(True)
+    t2.setTokenized(True)
+    t2.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
-    # Simple query on contents
-    from org.apache.lucene.queryparser.classic import QueryParser
-    from org.apache.lucene.index import DirectoryReader
-    from org.apache.lucene.search import IndexSearcher
-    query = QueryParser("contents", StandardAnalyzer()).parse("vitriol baltimore")
-    searcher = IndexSearcher(DirectoryReader.open(indexer.dir))
-    scoreDocs = searcher.search(query, 50).scoreDocs
-    print(len(scoreDocs), "matching documents")
-    for d in scoreDocs:
-        print(d)
-        print(searcher.doc(d.doc).getField('name'))
-        print(searcher.doc(d.doc).getField('contents'))
-        print(searcher.doc(d.doc).getField('link_id'))
+    t3 = FieldType()
+    t3.setStored(True)
+    t3.setTokenized(False)
+    t3.setIndexOptions(IndexOptions.DOCS)
+##    t3.setNumericType(FieldType.INT)
+
     
-    # Simple query on link_id
-    query = QueryParser("link_id", StandardAnalyzer()).parse("t3_34f1bu")
-    searcher = IndexSearcher(DirectoryReader.open(indexer.dir))
-    scoreDocs = searcher.search(query, 50).scoreDocs
-    print(len(scoreDocs), "matching documents")
-    for d in scoreDocs:
-        print(d)
-        print(searcher.doc(d.doc).getField('name'))
-        print(searcher.doc(d.doc).getField('contents'))
-        print(searcher.doc(d.doc).getField('link_id'))
-    
+    # Fields to index (comments)
+    fields = {
+        'id': t1,
+        'subreddit': t1,
+        'ups': t3,
+        'downs': t3,
+        'name': t1,
+        'body': t2,
+        'link_id': t1
+        }
+
+
+
+    # Indexation
+    indexer = Indexer(args.storeDir)
+
+    field_names = ", ".join(fields.keys())
+    sql_query = """SELECT %s FROM %s"""%(field_names, args.rel_name)
+
+    indexer.indexDocs(fields, c.execute(sql_query))
+
+
