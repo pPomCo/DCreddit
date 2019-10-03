@@ -18,6 +18,7 @@ Comments indexation and querying.
     
     > optional arguments:
     >   -h, --help  show this help message and exit
+    >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])
 
 
 ## searcher.py
@@ -32,3 +33,4 @@ Comments indexation and querying.
     >
     > optional arguments:
     >   -h, --help  show this help message and exit
+    >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])
