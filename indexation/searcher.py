@@ -27,7 +27,7 @@ def run(searcher, analyzer, reordering='no'):
         print("%s total matching documents." % len(scoreDocs))
 
 
-        # Reordering 
+        # Reordering using rank and ups 
         n_docs = len(scoreDocs)
         if reordering == 'ups':
             scores = {}
@@ -36,6 +36,7 @@ def run(searcher, analyzer, reordering='no'):
                 scores[scoreDoc.doc] = (n_docs-i, int(doc.get('ups')))
             scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
 
+        # Reordering using weighted normalized rank and ups
         elif reordering == 'norm_ups':
             scores = {}
             for i, scoreDoc in enumerate(scoreDocs):
@@ -53,6 +54,7 @@ def run(searcher, analyzer, reordering='no'):
                                         w_ups * int(doc.get('ups'))/max_ups)
             scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
 
+        # No reordering
         else:
             scores = {sd.doc: (n_docs-i,) for i,sd in enumerate(scoreDocs)}
 
