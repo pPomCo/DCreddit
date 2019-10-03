@@ -7,7 +7,7 @@ from org.apache.lucene.search import IndexSearcher
 from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import DirectoryReader
 from org.apache.lucene.search.similarities import \
-     TFIDFSimilarity, LMDirichletSimilarity, BM25Similarity
+     ClassicSimilarity, LMDirichletSimilarity, BM25Similarity
 
 
 
@@ -56,8 +56,7 @@ if __name__ == "__main__":
     elif args.sim in ['lm']:
         similarity = LMDirichletSimilarity()
     else:
-##        similarity = TFIDFSimilarity()
-        similarity = None
+        similarity = ClassicSimilarity()
 
     # Sample query
     storeDir = SimpleFSDirectory(Paths.get(args.index_dir))

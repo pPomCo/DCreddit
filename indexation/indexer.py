@@ -8,7 +8,7 @@ from org.apache.lucene.index import \
     FieldInfo, IndexWriter, IndexWriterConfig, IndexOptions
 from org.apache.lucene.store import SimpleFSDirectory
 from org.apache.lucene.search.similarities import \
-     TFIDFSimilarity, LMDirichletSimilarity, BM25Similarity
+     ClassicSimilarity, LMDirichletSimilarity, BM25Similarity
 
 
 class Indexer(object):
@@ -82,8 +82,7 @@ if __name__ == "__main__":
     elif args.sim in ['lm']:
         similarity = LMDirichletSimilarity()
     else:
-##        similarity = TFIDFSimilarity()
-        similarity = None
+        similarity = ClassicSimilarity()
 
 
     # Open DB    
