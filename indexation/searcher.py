@@ -37,7 +37,7 @@ def run(searcher, analyzer, reordering='no'):
             scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
 
         # Reordering using weighted normalized rank and ups
-        elif reordering == 'norm_ups':
+        elif reordering == 'normups':
             scores = {}
             for i, scoreDoc in enumerate(scoreDocs):
                 doc = searcher.doc(scoreDoc.doc)
