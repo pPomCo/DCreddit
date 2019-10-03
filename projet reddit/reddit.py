@@ -80,7 +80,10 @@ def classifier(df_train,df_test):
         predict = model.predict(df_test)
         return predict
 
-        
-df = sample.sqlite
+df = pd.read_csv("sample.sqlite") 
 print(df)
-
+print()
+print("Nettoyage des données")
+print(clean_data(df))
+print()
+print("Les donnees sont clean ?",not(df.get('downs')))

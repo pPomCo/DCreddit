@@ -1,0 +1,10 @@
+V : 00 : 01/10 : Comprehension du sujet
+V : 01 : 02/10 : Fonction auxiliaires
+V : 02 : 03/10 : Comprehension modele Bayésien
+V : 03 : 03/10 : Prermier modele bayésien
+V : 04 : 03/10 : Calcul precision modele
+F : 05 : : Debug premier modele
+F : 06 : : Test calcul de precision
+F : 07 : : Revisions du modele ?
+F : 08 : : Test nettoyage des données
+F : 09 : : Selection des attributs pertinants a l'aide de tests
