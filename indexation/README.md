@@ -1,10 +1,10 @@
 # Indexation
 
-### indexer.py
+## indexer.py
 
-Comments indexation
+Comments indexation and querying. 
 
-#### Usage
+### Usage
 
     python3 indexer.py -h
     > usage: indexer.py [-h] DB [storeDir] [relation]
@@ -18,3 +18,19 @@ Comments indexation
     
     > optional arguments:
     >   -h, --help  show this help message and exit
+    >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])
+
+
+## searcher.py
+
+    python3 searcher.py -h
+    > usage: searcher.py [-h] dir
+    > 
+    > Execute queries on comment body
+    >
+    > positional arguments:
+    >   dir         Index directory
+    >
+    > optional arguments:
+    >   -h, --help  show this help message and exit
+    >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])

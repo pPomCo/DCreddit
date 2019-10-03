@@ -7,8 +7,8 @@ from org.apache.lucene.document import Document, Field, FieldType
 from org.apache.lucene.index import \
     FieldInfo, IndexWriter, IndexWriterConfig, IndexOptions
 from org.apache.lucene.store import SimpleFSDirectory
-
-
+from org.apache.lucene.search.similarities import \
+     TFIDFSimilarity, LMDirichletSimilarity, BM25Similarity
 
 
 class Indexer(object):
@@ -17,7 +17,7 @@ class Indexer(object):
     Based on 'samples/IndexFiles.py'"""
 
 
-    def __init__(self, storeDir):
+    def __init__(self, storeDir, similarity=None):
         """Constructor
 
         storeDir -- path where to save the index"""
@@ -30,6 +30,8 @@ class Indexer(object):
         analyzer = StandardAnalyzer()
         config = IndexWriterConfig(analyzer)
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE)
+        if similarity is not None:
+            config.setSimilarity(similarity)
         writer = IndexWriter(store, config)
 
         self.writer = writer
@@ -57,6 +59,9 @@ class Indexer(object):
 
 if __name__ == "__main__":
 
+    # Init lucene
+    lucene.initVM()
+
     # Read command-line arguments
     import argparse
     parser = argparse.ArgumentParser(
@@ -67,16 +72,24 @@ if __name__ == "__main__":
                         default='index/', help="path where to build index (default: 'index/')")
     parser.add_argument('rel_name', metavar='relation', type=str, nargs='?',
                         default="May2015", help="Relation name (default: 'May2015')")
+    parser.add_argument('--sim', type=str, nargs='?',
+                        default="tfidf", help="Similarity (in [tfidf, lm, bm25])")
     args = parser.parse_args()
+
+
+    if args.sim in ['bm25']:
+        similarity = BM25Similarity()
+    elif args.sim in ['lm']:
+        similarity = LMDirichletSimilarity()
+    else:
+##        similarity = TFIDFSimilarity()
+        similarity = None
 
 
     # Open DB    
     import sqlite3
     conn = sqlite3.connect(args.db)
     c = conn.cursor()
-
-    # Init lucene
-    lucene.initVM()
 
 
     # Field types
@@ -111,7 +124,7 @@ if __name__ == "__main__":
 
 
     # Indexation
-    indexer = Indexer(args.storeDir)
+    indexer = Indexer(storeDir=args.storeDir, similarity=similarity)
 
     field_names = ", ".join(fields.keys())
     sql_query = """SELECT %s FROM %s"""%(field_names, args.rel_name)
