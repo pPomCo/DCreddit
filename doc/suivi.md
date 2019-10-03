@@ -5,6 +5,7 @@
 | Sprint | Échéance | Tâche |
 | :---: | :---: | --- |
 | n°1 | 03/10 | Indexation v0 : workflow simple (modèle vectoriel) |
+| n°2 | 07/10 | Moteur RI (non perso), exploration données, début tâche suivante |
 
 ## Détail
 
@@ -40,3 +41,11 @@
         - Première discussion avec les autres groupes (pas de réponses)
     - Technos (pylucene) -> libre
     - Gestion données temporelles -> indexées en tant que méta-données du document
+
+#### Mercredi 02/10 et jeudi 03/10
+
+- **Tâches**
+    - Exploration des données
+    - Indexation sur Osirim
+    - Modèles vectoriels, probabilistes, de langue
+    - Reordonnancement des résultats selon 'ups' (non personnalisé)
