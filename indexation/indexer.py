@@ -101,6 +101,9 @@ if __name__ == "__main__":
     t2 = FieldType()
     t2.setStored(True)
     t2.setTokenized(True)
+    t2.setStoreTermVectors(True)
+##    t2.setStoreTermVectorPositions(True)
+##    t2.setStoreTermVectorPayloads(True)
     t2.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
     t3 = FieldType()
@@ -115,7 +118,7 @@ if __name__ == "__main__":
         'id': t1,
         'subreddit': t1,
         'ups': t3,
-        'downs': t3,
+##        'downs': t3,
         'name': t1,
         'body': t2,
         'link_id': t1

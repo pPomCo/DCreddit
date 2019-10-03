@@ -34,3 +34,16 @@ Comments indexation and querying.
     > optional arguments:
     >   -h, --help  show this help message and exit
     >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])
+
+## get_term_vectors.py
+
+    python3 get_term_vectors.py -h
+    > usage: get_term_vectors.py [-h] [storeDir]
+    >
+    > Build index on comments and users
+    >
+    > positional arguments:
+    >   storeDir    path where to build index (default: 'index/')
+    >
+    > optional arguments:
+    >   -h, --help  show this help message and exit
