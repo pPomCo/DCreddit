@@ -7,12 +7,12 @@ from org.apache.lucene.search import IndexSearcher
 from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import DirectoryReader
 from org.apache.lucene.search.similarities import \
-     TFIDFSimilarity, LMDirichletSimilarity, BM25Similarity
+     ClassicSimilarity, LMDirichletSimilarity, BM25Similarity
 
 
 N_DOCS = 10
 
-def run(searcher, analyzer):
+def run(searcher, analyzer, reordering='no'):
     while True:
         print()
         print("Hit enter with no input to quit.")
@@ -27,28 +27,47 @@ def run(searcher, analyzer):
         print("%s total matching documents." % len(scoreDocs))
 
 
-        # Reordering using ups
-        scores = {}
+        # Reordering 
         n_docs = len(scoreDocs)
-        for i, scoreDoc in enumerate(scoreDocs):
-            doc = searcher.doc(scoreDoc.doc)
-            scores[scoreDoc.doc] = (n_docs-i, int(doc.get('ups')))
-            ## TODO: normalize 'ups'
-            ## (divide it by the maximum 'ups' of the subreddit)
-            ## + weight scores
+        if reordering == 'ups':
+            scores = {}
+            for i, scoreDoc in enumerate(scoreDocs):
+                doc = searcher.doc(scoreDoc.doc)
+                scores[scoreDoc.doc] = (n_docs-i, int(doc.get('ups')))
+            scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
 
-        print(scores)
+        elif reordering == 'norm_ups':
+            scores = {}
+            for i, scoreDoc in enumerate(scoreDocs):
+                doc = searcher.doc(scoreDoc.doc)
+                query_ups = QueryParser("subreddit", analyzer).parse(doc.get('subreddit'))
+                scoreDocs_ups = searcher.search(query_ups, 1000).scoreDocs
+                max_ups = 0
+                for sd_ups in scoreDocs_ups:
+                    max_ups = max(max_ups, abs(int(searcher.doc(sd_ups.doc).get('ups'))))
+                if max_ups == 0:
+                    max_ups = 1
 
-        scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
+                w_rank, w_ups = 0.7, 0.3
+                scores[scoreDoc.doc] = (w_rank * (n_docs-i)/n_docs,
+                                        w_ups * int(doc.get('ups'))/max_ups)
+            scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
+
+        else:
+            scores = {sd.doc: (n_docs-i,) for i,sd in enumerate(scoreDocs)}
 
         # Print results
         for i, scoreDoc in enumerate(scoreDocs):
             doc = searcher.doc(scoreDoc.doc)
             print()
-            print("%d (sc=%d+%d=%d) (%s)"%(
+            print("%d: %s (score: %s)"%(
                 i,
-                *scores[scoreDoc.doc], sum(scores[scoreDoc.doc]),
-                doc.get('name')))
+                doc.get('name'),
+                "%s=%.3f"%(
+                    "+".join(["%.3f"%x for x in scores[scoreDoc.doc]]),
+                    sum(scores[scoreDoc.doc])
+                    )
+                ))
             print(doc.get('body'))
 
         
@@ -68,6 +87,8 @@ if __name__ == "__main__":
                         help="Index directory")
     parser.add_argument('--sim', type=str, nargs='?',
                         default="tfidf", help="Similarity (in [tfidf, lm, bm25])")
+    parser.add_argument('--reorder', type=str, nargs='?',
+                        default="no", help="Reordering (in [ups, normups])")
     args = parser.parse_args()
 
 
@@ -76,8 +97,7 @@ if __name__ == "__main__":
     elif args.sim in ['lm']:
         similarity = LMDirichletSimilarity()
     else:
-##        similarity = TFIDFSimilarity()
-        similarity = None
+        similarity = ClassicSimilarity()
 
     # Sample query
     storeDir = SimpleFSDirectory(Paths.get(args.index_dir))
@@ -85,4 +105,4 @@ if __name__ == "__main__":
     if similarity is not None:
         searcher.setSimilarity(similarity)
     analyzer = StandardAnalyzer()
-    run(searcher, analyzer)
+    run(searcher, analyzer, reordering=args.reorder)

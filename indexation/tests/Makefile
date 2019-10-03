@@ -2,7 +2,10 @@
 DB = ../../data/sample10k.sqlite
 
 # Similarities
-MODELS = bm25 lm tf-idf
+MODELS = bm25 lm tfxidf
+
+# Reordering
+REORDER = no ups normups
 
 # Indexes directory
 INDEXES = ../indexes
@@ -17,11 +20,15 @@ QUERIES = sample_queries.txt
 INDEXER = python3 ../indexer.py
 SEARCHER = python3 ../searcher.py
 
-test_all: $(foreach m, bm25 lm tf-idf, $(OUTDIR)/$(m).txt)
+test_all: $(foreach ord, $(REORDER), $(foreach m, $(MODELS), $(OUTDIR)/$(m)-$(ord).txt))
 
 
-$(OUTDIR)/%.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
+$(OUTDIR)/%-no.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
 	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* > $@
+$(OUTDIR)/%-ups.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
+	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder ups > $@
+$(OUTDIR)/%-normups.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
+	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder normups > $@
 
 $(INDEXES)/%/: $(INDEXES)
 	$(INDEXER) $(DB) $@ --sim $*
