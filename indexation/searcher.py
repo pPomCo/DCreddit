@@ -14,9 +14,9 @@ N_DOCS = 10
 
 
 def escape_lucene_special_chars(string):
-    for c in ['+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']',
-              '^', '"', '~', '*', '?', ':', '\\']:
-        string = string.replace(c, '\\%s'%c)
+    for c in ['//', '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']',
+              '^', '"', '~', '*', '?', ':', '/']:
+        string = string.replace(c, ' ')
     return string
 
 
