@@ -13,6 +13,13 @@ from org.apache.lucene.search.similarities import \
 N_DOCS = 10
 
 
+def escape_lucene_special_chars(string):
+    for c in ['+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']',
+              '^', '"', '~', '*', '?', ':', '\\']:
+        string = string.replace(c, '\\%s'%c)
+    return string
+
+
 def reorder_ups(scoreDocs, searcher):
     """Reorder results using the score 'n_docs - rank + ups'
 
@@ -63,6 +70,7 @@ def run(searcher, analyzer, reordering='no', show_bodies=True):
         if command == '':
             return
 
+        command = escape_lucene_special_chars(command)
         print()
         print("Searching for:", command)
         query = QueryParser("body", analyzer).parse(command)
