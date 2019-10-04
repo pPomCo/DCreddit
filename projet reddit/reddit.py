@@ -4,6 +4,8 @@ import numpy as np
 import sklearn as sk
 import pandas as pd
 import sqlite3
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
 
 #Recupération des donnees
 #Récupérons les labels 
@@ -57,7 +59,7 @@ def mae(df,predict):
 #E: les données
 #F: Execute un classifier naive bayes
 #S: Retourne la prediction de ups
-def classifier(df_train,df_test):
+def NVB(df_train,df_test):
         model = GaussianNB()
         df_train = clean_data(df_train)
         label = df_train["ups"]
@@ -69,6 +71,16 @@ def classifier(df_train,df_test):
         df_test = df_test.drop('ups', axis=1)
         predict = model.predict(df_test)
         return predict
+
+#E: Deux dataframe test train + leur label (test et train)
+#F: Algo de gradiant boosting tree appliqué à nos données
+#S: La liste des prédictions
+def gbr(x_train,x_test,y_train):
+	#Training Classifier
+	reg = GradientBoostingRegressor(random_state=1)
+	reg.fit(x_train, y_train)
+	#Testing Classifier
+	print(plt.plot(reg.predict(x_test)))
 
 #E: Une dataFrame
 #F: Fonction de test du nettoyage des données
@@ -107,9 +119,15 @@ def test_mae(df):
 #F: Fonction de test du classifier
 #S: Un entier
 def test_classif(df):
-	x_train, x_ test, y_train, y_test = train_test_split(df, df[ups], train_size=0.70 random_state=42)
-	#classifier(df)
+	#x_train, x_ test, y_train, y_test = train_test_split(df, df[ups], train_size=0.70 random_state=42)
+	#NVB(df)
+	ups = df['ups']
+	df = df.drop('ups', axis=1)
+	x_train, x_test, y_train, y_test = train_test_split(df, ups, train_size=0.70, random_state=42)
+	gbr(x_train, x_test, y_train)
 	return 0
+	
+	
 	
 # Au cas ou split en train / test / validation
 # Train 70 Test 20% Validation 10%
@@ -120,6 +138,5 @@ def Main():
 	cnx = sqlite3.connect('sample.sqlite')
 	df = pd.read_sql_query("SELECT * FROM  May2015", cnx)
 	test_classif(df)
-
 
 Main()
