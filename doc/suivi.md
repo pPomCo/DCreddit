@@ -49,3 +49,15 @@
     - Indexation sur Osirim
     - Modèles vectoriels, probabilistes, de langue
     - Reordonnancement des résultats selon 'ups' (non personnalisé)
+    
+#### Vendredi 04/10
+- **Tâches**
+    - Concertation concernant l'interfaçage avec les autres groupes
+    - Construction d'un profil utilisateur basique
+    - Mise en place d'un modèle prédictif basique
+    
+- **Problèmes**
+    - Représentation partagée entre commentaires et concepts ODP ?
+    - Comment utiliser l'ensemble des données (commentaire à prédire + reste du thread/subreddit ?) pour la prédiction ?
+    - Comment évaluer la pertinence d'un document ? Quelle est la vérité terrain ? Les requêtes types ?
+        - Si on utilise le score pour évaluer la pertinence, on ne peut plus s'en servir pour évaluer la performance du système...
