@@ -44,7 +44,11 @@ class Indexer(object):
         docs -- iterable over documents"""
 
         # Index each document
-        for d in docs:
+        t = time.time()
+        for i, d in enumerate(docs):
+            if i % 100000 == 0:
+                print("Indexing doc #%d (time: %.2f)"%(i, time.time()-t))
+                t = time.time()
             doc = Document()
             for i, (field_name, field_type) in enumerate(fields.items()):
                 doc.add(Field(field_name, d[i], field_type))

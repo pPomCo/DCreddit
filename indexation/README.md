@@ -2,10 +2,6 @@
 
 ## indexer.py
 
-Comments indexation and querying. 
-
-### Usage
-
     python3 indexer.py -h
     > usage: indexer.py [-h] DB [storeDir] [relation]
     
@@ -34,6 +30,9 @@ Comments indexation and querying.
     > optional arguments:
     >   -h, --help  show this help message and exit
     >   --sim [SIM]  Similarity (in [tfidf, lm, bm25])
+    >   --reorder [REORDER]  Reordering (in [ups, normups])
+    >   --short              Don't show the body of comments
+
 
 ## get_term_vectors.py
 
