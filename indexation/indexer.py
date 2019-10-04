@@ -121,8 +121,9 @@ if __name__ == "__main__":
     fields = {
         'id': t1,
         'subreddit': t1,
+        'subreddit_id': t1,
         'ups': t3,
-##        'downs': t3,
+        'author': t1,
         'name': t1,
         'body': t2,
         'link_id': t1

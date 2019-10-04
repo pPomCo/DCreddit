@@ -81,9 +81,10 @@ def run(searcher, analyzer, reordering='no', show_bodies=True):
         # Print results
         for i, scoreDoc in enumerate(scoreDocs):
             doc = searcher.doc(scoreDoc.doc)
-            print("%d: %s (score: %s)"%(
+            print("%d: %s [by %s] (score: %s)"%(
                 i,
                 doc.get('name'),
+                doc.get('author'),
                 "%s=%.3f"%(
                     "+".join(["%.3f"%x for x in scores[scoreDoc.doc]]),
                     sum(scores[scoreDoc.doc])
