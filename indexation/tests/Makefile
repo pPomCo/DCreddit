@@ -24,11 +24,11 @@ test_all: $(foreach ord, $(REORDER), $(foreach m, $(MODELS), $(OUTDIR)/$(m)-$(or
 
 
 $(OUTDIR)/%-no.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
-	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* > $@
+	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --short > $@
 $(OUTDIR)/%-ups.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
-	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder ups > $@
+	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder ups --short > $@
 $(OUTDIR)/%-normups.txt: $(QUERIES) $(INDEXES)/%/ | $(OUTDIR)
-	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder normups > $@
+	cat $(QUERIES) | $(SEARCHER) $(INDEXES)/$* --sim $* --reorder normups --short > $@
 
 $(INDEXES)/%/: $(INDEXES)
 	$(INDEXER) $(DB) $@ --sim $*
