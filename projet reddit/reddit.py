@@ -3,6 +3,7 @@
 import numpy as np
 import sklearn as sk
 import pandas as pd
+import sqlite3
 
 #Recupération des donnees
 #Récupérons les labels 
@@ -14,18 +15,14 @@ import pandas as pd
 #Procedure Source :
 #https://towardsdatascience.com/the-art-of-cleaning-your-data-b713dbd49726
 def clean_data(df):
-	# Missing data (generalement ont les enlèves):
-	df.dropna(axis=0, how='any')
-	# Outliers (ont regarde les 100 premiers et derniers):
-	lower_limit = np.percentille(df.ups,0.0002)
-	upper_limit = np.percentille(df.ups,0.00098)
-	print(lower_limit)
-	print()
-	print(upper_limit)
-		#potentiel transfo de x en enlevant ces 100 valeurs ovnies
 	# Irrevelant features (Obliger score + down):
-	df.drop('downs', axis=1)
-	df.drop('score_hidden', axis=1)
+	df = df.drop(['downs','score'], axis=1)
+	# Missing data (generalement ont les enlèves):
+	df = df.dropna(axis=0, how='any')
+	# Outliers (ont regarde les 100 premiers et derniers):
+	lower_limit = np.percentile(df.ups,0.0002)
+	upper_limit = np.percentile(df.ups,0.00098)
+	# potentiel transfo de x en enlevant ces 100 valeurs ovnies
 	return df
 	
 #E: Des données, une liste de features
@@ -40,12 +37,10 @@ def rmv_features(df,features):
 #F: Regroupe les données par thème
 #S: Des liste de données
 def regroup(df,tab):
-	feature_groups = {}
 	data=[]
 	for i in range(len(tab)):
-		feature_group[i]=', '.join(tab[i])
 		data.append(df[tab[i]])
-	return (data,feature_group)
+	return data
 
 #E: Nos données (de test) ainsi que nos predictions de ups
 #F: Calcul la precision de notre modele sur 1 éssais
@@ -56,12 +51,7 @@ def mae(df,predict):
         if n==len(predict):
                 #addition commutative
                 return (1/n)*abs(sum(ups)-sum(predict))
-        return 0.0 
-
-# Au cas ou split en train / test / validation
-# Train 70 Test 20% Validation 10%
-#x_train, x_b, y_train, y_b = train_test_split(x, y, train_size=0.80, random_state=42)
-#x_test, x_ validation, y_test, y_validation(x_b, y_b, train_size=0.66 random_state=42)
+        return 9999999999.9999999999 
 
 #On retient la méthode Naive Bayes
 #E: les données
@@ -80,10 +70,56 @@ def classifier(df_train,df_test):
         predict = model.predict(df_test)
         return predict
 
-df = pd.read_csv("sample.sqlite") 
-print(df)
-print()
-print("Nettoyage des données")
-print(clean_data(df))
-print()
-print("Les donnees sont clean ?",not(df.get('downs')))
+#E: Une dataFrame
+#F: Fonction de test du nettoyage des données
+#S: Un entier
+def test_clean(df):
+	print(df)
+	print()
+	print("#####################################################################")
+	print("Nettoyage des données")
+	df=clean_data(df)
+	print(df)
+	print("#####################################################################")
+	return 0
+	
+#E: Une dataFrame
+#F: Fonction de test du regroupement des données
+#S: Un entier
+def test_regrp(df):
+	datas = regroup(df,[['ups','parent_id'],['edited','body']])
+	print(datas[0])
+	print(datas[1])
+	return 0
+
+#E: Une dataFrame
+#F: Fonction de test de la mae
+#S: Un entier
+def test_mae(df):
+	ups = df.get('ups')
+	L_ups = ups.values.tolist()
+	print(mae(df,L_ups))
+	L_ups.pop()
+	print(mae(df,L_ups))
+	return 0
+
+#E: Une dataFrame
+#F: Fonction de test du classifier
+#S: Un entier
+def test_classif(df):
+	x_train, x_ test, y_train, y_test = train_test_split(df, df[ups], train_size=0.70 random_state=42)
+	#classifier(df)
+	return 0
+	
+# Au cas ou split en train / test / validation
+# Train 70 Test 20% Validation 10%
+#x_train, x_b, y_train, y_b = train_test_split(x, y, train_size=0.80, random_state=42)
+#x_test, x_ validation, y_test, y_validation(x_b, y_b, train_size=0.66 random_state=42)
+
+def Main():
+	cnx = sqlite3.connect('sample.sqlite')
+	df = pd.read_sql_query("SELECT * FROM  May2015", cnx)
+	test_classif(df)
+
+
+Main()
