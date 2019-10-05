@@ -70,7 +70,7 @@ def run(searcher, analyzer, reordering='no', show_bodies=True):
         if command == '':
             return
 
-        command = escape_lucene_special_chars(command)
+##        command = escape_lucene_special_chars(command)
         print()
         print("Searching for:", command)
         query = QueryParser("body", analyzer).parse(command)
