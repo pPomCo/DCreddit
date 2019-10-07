@@ -1,6 +1,8 @@
 
 import sys, os, lucene, threading, time
 from org.apache.lucene.queryparser.classic import QueryParser
+from org.apache.lucene.analysis.core import WhitespaceAnalyzer
+
 
 
 
@@ -23,6 +25,7 @@ def reorder_normups(scoreDocs, searcher, weights=(0.8,0.2)):
     """
     scores = {}
     n_docs = len(scoreDocs)
+    analyzer = WhitespaceAnalyzer()
     for i, scoreDoc in enumerate(scoreDocs):
         doc = searcher.doc(scoreDoc.doc)
         query_ups = QueryParser("subreddit", analyzer).parse(doc.get('subreddit'))
