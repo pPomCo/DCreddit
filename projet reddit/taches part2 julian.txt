@@ -4,8 +4,9 @@ V : 02 : 03/10 : Comprehension modele Bayésien
 V : 03 : 03/10 : Prermier modele bayésien
 V : 04 : 03/10 : Calcul precision modele
 V : 05 : 04/10 : Debug fonction aux
-F : 06 : : Debug premier modele
-F : 07 : : Test calcul de precision
-F : 08 : : Revisions du modele ?
-F : 09 : : Test nettoyage des données
-F : 10 : : Selection des attributs pertinants a l'aide de tests
+V : 06 : 05/10 : Debug premier modele
+V : 07 : 05/10 : Test calcul de precision
+F : 08 : : Invers Tree Model
+F : 09 : : Matrice de var/covar (features enginering)
+V : 10 : 04/10 : Test nettoyage des données
+F : 11 : : Selection des attributs pertinants a l'aide de tests
