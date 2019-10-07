@@ -61,3 +61,9 @@
     - Comment utiliser l'ensemble des données (commentaire à prédire + reste du thread/subreddit ?) pour la prédiction ?
     - Comment évaluer la pertinence d'un document ? Quelle est la vérité terrain ? Les requêtes types ?
         - Si on utilise le score pour évaluer la pertinence, on ne peut plus s'en servir pour évaluer la performance du système...
+
+
+#### Lundi 07/10
+- **Tâches**
+    - Requêtes personnalisées (reformulation de requête considérant le profil basique)
+    
