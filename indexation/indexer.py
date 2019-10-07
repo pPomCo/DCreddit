@@ -1,3 +1,24 @@
+"""
+Index comments from a sqlite3 db.
+
+Can use TF-IDF, language model and BM25.
+
+Indexed fields are :
+        'id': t1,
+        'subreddit': t1,
+        'subreddit_id': t1,
+        'ups': t3,
+        'author': t1,
+        'name': t1,
+        'body': t2,
+        'link_id': t1
+
+Where the FieldTypes are :
+        t1: store (docss freqs)
+        t2: tokenize (docs, freqs, positions, term vectors)
+        t3: store (docs)
+
+"""
 import sys, os, lucene, threading, time
 
 from java.nio.file import Paths
@@ -8,7 +29,7 @@ from org.apache.lucene.index import \
     FieldInfo, IndexWriter, IndexWriterConfig, IndexOptions
 from org.apache.lucene.store import SimpleFSDirectory
 from org.apache.lucene.search.similarities import \
-     TFIDFSimilarity, LMDirichletSimilarity, BM25Similarity
+     ClassicSimilarity, LMDirichletSimilarity, BM25Similarity
 
 
 class Indexer(object):
@@ -86,8 +107,7 @@ if __name__ == "__main__":
     elif args.sim in ['lm']:
         similarity = LMDirichletSimilarity()
     else:
-##        similarity = TFIDFSimilarity()
-        similarity = None
+        similarity = ClassicSimilarity()
 
 
     # Open DB    
@@ -106,15 +126,12 @@ if __name__ == "__main__":
     t2.setStored(True)
     t2.setTokenized(True)
     t2.setStoreTermVectors(True)
-##    t2.setStoreTermVectorPositions(True)
-##    t2.setStoreTermVectorPayloads(True)
     t2.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
 
     t3 = FieldType()
     t3.setStored(True)
     t3.setTokenized(False)
     t3.setIndexOptions(IndexOptions.DOCS)
-##    t3.setNumericType(FieldType.INT)
 
     
     # Fields to index (comments)

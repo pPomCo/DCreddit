@@ -1,3 +1,12 @@
+"""
+Execute query on comments
+
+Querying can be automated by piping a query-file into this program. Each line
+is a query, and an empty line (at least the last) stops the program.
+
+Can set the representation model (TK-IDF, LM, BM25) depending on the index.
+"""
+
 import sys, os, lucene, threading, time
 
 from java.nio.file import Paths
