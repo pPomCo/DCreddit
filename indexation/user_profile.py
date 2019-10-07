@@ -71,7 +71,7 @@ if __name__ == "__main__":
         user = row[0]
         if not "[" in user:
             print(user)
-            profile = user_profile(searcher, analyzer, user)
+            profile = user_profile(searcher, user)
             for k, v in profile.items():
                 print("   ", k, v)
             
