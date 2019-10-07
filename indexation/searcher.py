@@ -15,8 +15,8 @@ N_DOCS = 10
 
 def escape_lucene_special_chars(string):
     for c in ['//', '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']',
-              '^', '"', '~', '*', '?', ':',]:
-        string = string.replace(c, '\\%s'%c)
+              '^', '"', '~', '*', '?', ':', '/']:
+        string = string.replace(c, ' ')
     return string
 
 
@@ -70,7 +70,7 @@ def run(searcher, analyzer, reordering='no', show_bodies=True):
         if command == '':
             return
 
-        command = escape_lucene_special_chars(command)
+##        command = escape_lucene_special_chars(command)
         print()
         print("Searching for:", command)
         query = QueryParser("body", analyzer).parse(command)
