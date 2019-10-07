@@ -66,4 +66,4 @@
 #### Lundi 07/10
 - **Tâches**
     - Requêtes personnalisées (reformulation de requête considérant le profil basique)
-    
+    - Évaluation système : requêtes aléatoires + présentation résultats
