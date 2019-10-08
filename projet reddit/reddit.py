@@ -6,8 +6,12 @@ import pandas as pd
 import sqlite3
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble.gradient_boosting import GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
 
-#Recupération des donnees
+#Recupération des donneesared:                  0.004
 #Récupérons les labels 
 #Clean data
 
@@ -24,12 +28,16 @@ def clean_data(df):
 	# Outliers (ont regarde les 100 premiers et derniers):
 	lower_limit = np.percentile(df.ups,0.0002)
 	upper_limit = np.percentile(df.ups,0.00098)
+	
+	df=(df[df['ups'] > lower_limit])
+	df=(df[df['ups'] < abs(upper_limit)])
 	# potentiel transfo de x en enlevant ces 100 valeurs ovnies
 	return df
 	
-#E: Des données, une liste de features
+#E: Des données, une liste de featuresared:                  0.004
 #F: Enlève les features de la liste a nos données
-#S: Des données
+#S: Des donnéesShape of passed values is (10, 2), indices imply (10000, 2)
+
 def rmv_features(df,features):
 	for i in range(len(features)):
 		df.drop(features[i], axis=1)
@@ -49,6 +57,7 @@ def regroup(df,tab):
 #S: Un float représentant la preécision (0 si echec)
 def mae(df,predict):
         ups = df["ups"].tolist()
+
         n = len(ups)
         if n==len(predict):
                 #addition commutative
@@ -56,7 +65,7 @@ def mae(df,predict):
         return 9999999999.9999999999 
 
 #On retient la méthode Naive Bayes
-#E: les données
+#E: les donnéesared:                  0.004
 #F: Execute un classifier naive bayes
 #S: Retourne la prediction de ups
 def NVB(df_train,df_test):
@@ -84,7 +93,8 @@ def gbr(x_train,x_test,y_train):
 	
 #E: Un dataframe et une de ces feature en str
 #F:	Modifie le data frame en transformant le chant feature en int
-#S: Le dataframe modifié
+#S: Le dataframe modifiéShape of passed values is (10, 2), indices imply (10000, 2)
+
 def annexeMcov(df,feature):
 	dictio = df[feature].to_dict()
 	dictio2 = {}
@@ -109,15 +119,28 @@ def Mcov(df,features):
 	#Preparation du dataframe avec remplacement des string
 	for i in range(len(features)):
 		df = annexeMcov(df,features[i])
-	print(df)
+	
+	#Modele bassique :
+	#model = LinearRegression()
+	#model.fit(df[features], df['ups'])
+	#print(model.score(df[features], df['ups']))
+	
+	features2 = features + ['created_utc','gilded',
+	'archived','retrieved_on','edited','controversiality']
+	
+	#df_data = pd.DataFrame({'X':df[features2], 'y':df['ups']})
+	results = sm.OLS(df['ups'], df[features2]).fit()
+	#print(results.summary())
+	#print(results.mse_resid)
 	#https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.corr.html
+	#print("#####################")
+	print("La matrice de correlation :")
 	cov = df.corr()
 	print(cov)
 	print("#####################")
-	print("Ce qui nous interesse :")
-	print(cov["ups"])
+	print(cov['edited'])
 	
-	#E: Une dataFrame
+#E: Une dataFrame
 #F: Fonction de test du nettoyage des données
 #S: Un entier
 def test_clean(df):
@@ -172,10 +195,23 @@ def test_classif(df):
 def Main():
 	cnx = sqlite3.connect('sample.sqlite')
 	df = pd.read_sql_query("SELECT * FROM  May2015", cnx)
-	features = ['subreddit_id','link_id','name','author_flair_css_class',
-	'subreddit','id','removal_reason','author','distinguished','parent_id']
-	Mcov(df,features)
+	#features = ['subreddit_id','link_id','name','author_flair_css_class',
+	#'subreddit','id','removal_reason','author','distinguished','parent_id', 
+	#'edited', 'gilded']
+	features = ['subreddit_id','link_id','name','author_flair_css_class','author_flair_text',
+	'subreddit','removal_reason','distinguished','parent_id']
+	df = clean_data(df)
+	#Mcov(df,features)
 	#test_classif(df)
 	
 	
 Main()
+
+#Features ideas:
+#uppvote des parents
+#position dans le thread
+#tf idf by ups
+#Heure du poste
+#
+
+
