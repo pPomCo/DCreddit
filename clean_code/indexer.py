@@ -142,6 +142,7 @@ if __name__ == "__main__":
         'link_id': t1,
         'subreddit': t1,
         'subreddit_id': t1,
+        'created_utc': t3
         }
 
 

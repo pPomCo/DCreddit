@@ -21,6 +21,7 @@ It uses *lucene* to index the reddit comments database over the following fields
 - subreddit_id
 - subreddit
 - ups
+- created_utc
 
 The *body* field is stored (documents, frequencies, positions and term-vector) and lowercase-tokenized, so it enables to query by keywords and to access the document representation. All other fields are stored, and queries must match them exactly (case sensitive)
 
