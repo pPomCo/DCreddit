@@ -38,7 +38,9 @@ On the one hand, the *bm25* (probabilistic model) got the highest score with the
 
 ![Results](images/comm-test.png  "Results (comment-test)")
 
-On the other hand, the *lm* (language model) got the highest score with the link-test (querying with the title of a link, we expect to find its child comments). For now, we do not provide explanations.
+On the other hand, the *lm* (language model) got the highest score with the link-test (querying with the title of a link, we expect to find its child comments).
+
+We explain this distinction by the quality of the considered ground truth. For the comment-test, we collect random words, thus their position in the query is of no importance. On the contrary, for the link-test, we query with titles, which are likely to contain sequences of words, thus their relative positions are a relevant feature.
 
 ![Results](images/link-test.png  "Results (link-test)")
 
