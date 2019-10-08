@@ -82,40 +82,42 @@ def gbr(x_train,x_test,y_train):
 	#Testing Classifier
 	print(plt.plot(reg.predict(x_test)))			
 	
-
-#E: Les donnees en data frame
-#F: Créer la matrice de var covar pour nos données et l'afficher
-#S: Rien (fonction d'affichage)
-def Mcov(df):
-	#Preparation du dataframe avec remplacement des string
-	dictio = df["subreddit_id"].to_dict()
+#E: Un dataframe et une de ces feature en str
+#F:	Modifie le data frame en transformant le chant feature en int
+#S: Le dataframe modifié
+def annexeMcov(df,feature):
+	dictio = df[feature].to_dict()
 	dictio2 = {}
 	for i in range(len(dictio)):
 		if not (dictio[i] in dictio2.keys()):
 			dictio2[dictio[i]] = []
 		dictio2[dictio[i]].append(i)
 	clefs = list(dictio2.keys())
-	print(dictio2)
 	li = [0]*10000
 	for i in range(len(clefs)):
 		L = dictio2[clefs[i]]
 		for j in range(len(L)):
 			li[L[j]]=i
-	df = df.drop('subreddit_id', axis=1)
-	df['subreddit_id']=li
-	print(df['subreddit_id'])
+	df = df.drop(feature, axis=1)
+	df[feature]=li
+	return df
+
+#E: Les donnees en data frame, une liste de feature du dataframe str[]
+#F: Créer la matrice de var covar pour nos données et l'afficher
+#S: Rien (fonction d'affichage)
+def Mcov(df,features):
+	#Preparation du dataframe avec remplacement des string
+	for i in range(len(features)):
+		df = annexeMcov(df,features[i])
+	print(df)
 	#https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.corr.html
 	cov = df.corr()
 	print(cov)
 	print("#####################")
 	print("Ce qui nous interesse :")
 	print(cov["ups"])
-	print()
-	print("#####################")
-	print("Les 3 plus importants :")
-	print("Edited, created_utc, retrieved_on")
-
-#E: Une dataFrame
+	
+	#E: Une dataFrame
 #F: Fonction de test du nettoyage des données
 #S: Un entier
 def test_clean(df):
@@ -170,7 +172,9 @@ def test_classif(df):
 def Main():
 	cnx = sqlite3.connect('sample.sqlite')
 	df = pd.read_sql_query("SELECT * FROM  May2015", cnx)
-	Mcov(df)
+	features = ['subreddit_id','link_id','name','author_flair_css_class',
+	'subreddit','id','removal_reason','author','distinguished','parent_id']
+	Mcov(df,features)
 	#test_classif(df)
 	
 	
