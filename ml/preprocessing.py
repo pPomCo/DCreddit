@@ -1,15 +1,17 @@
-import pandas as pd
 import sqlite3
 from collections import defaultdict
 
+import numpy as np
+import pandas as pd
+import joblib
 from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 """
 Reads the data from the sqlite database or a csv file or whatever into a pandas DataFrame.
 Preprocesses said DataFrame and return a DataFrame for the features and one for
 the labels.
 """
-
 # Associates type of columns to column names
 dict_category_columns = {
     'object': [
@@ -46,62 +48,75 @@ dict_category_columns = {
     ],
 }
 
+target_columns = [
+    'ups', 
+    'score_hidden', 
+    'downs', 
+    'score',
+]
+
 def get_data_db(path_to_db):
     connection = sqlite3.connect(path_to_db)
 
     data = pd.read_sql_query("""
         SELECT *
         FROM May2015
-        LIMIT 100000
+        LIMIT 10000
     """, connection)
 
     return data
 
-
-
-def preprocess(df_raw):
-    print(df_raw.info())
-
-    # Columns to encode with a label encoder (object -> id)
-    object_columns = dict_category_columns['object']
-
-
-
+# Fill missing values
+def fill_missing_values(df):
     dict_fillna_values = {}
-    for column in object_columns:
+    for column in dict_category_columns['object']:
         dict_fillna_values[column] = 'None'
 
+    df.fillna(dict_fillna_values, inplace=True)
 
-    target_columns = ['ups', 'score_hidden', 'downs', 'score']
-    feature_columns = [
-        column 
-        for column in df_raw.columns 
-        if column not in target_columns
-    ]
+# Encode object columns, dummy categorical columns, scale scalar columns 
+def preprocess(df):
+    object_columns = dict_category_columns['object']
 
-
-
-    #for col in df_raw.columns:
-    #    print(df_raw[col].describe(), '\n')
-
-    df_raw.fillna(dict_fillna_values, inplace=True)
-    #print(df_raw['author_flair_css_class'].head().fillna('Kek'))
-    #df_raw[object_columns].fillna('None')
+    #target_columns = ['ups', 'score_hidden', 'downs', 'score']
+    #feature_columns = [
+    #    column 
+    #    for column in df.columns 
+    #    if column not in target_columns
+    #]
 
 
-    # Dictionary of LabelEncoder, associating to each column its fitted
-    # LabelEncoder
+    # Encode object columns to ids
     dict_label_encoder = defaultdict(LabelEncoder)
-    df_raw[object_columns] = df_raw[object_columns].apply(
+    df[object_columns] = df[object_columns].apply(
         lambda column: dict_label_encoder[column.name].fit_transform(column)
     )
+    #joblib.dump(dict_label_encoder, 'dict_label_encoder.pkl')
+    
+    # Cyclical encoding of day_of_week and hour_of_day
+    fraction_dayofweek = 2*np.pi * (
+        pd.to_datetime(df['created_utc'], unit='s').dt.dayofweek / 7
+    )
+    fraction_hourofday = 2*np.pi * (
+        pd.to_datetime(df['created_utc'], unit='s').dt.hour / 24
+    )
+    df['day_of_week_sin'] = np.sin(fraction_dayofweek)
+    df['day_of_week_cos'] = np.cos(fraction_dayofweek)
+    df['hour_of_day_sin'] = np.sin(fraction_hourofday)
+    df['hour_of_day_cos'] = np.cos(fraction_hourofday)
 
-    X = df_raw[feature_columns]
-    y = df_raw[target_columns]
+    # TF-IDF encoding of the comments body
+    tfidf_vectorizer = TfidfVectorizer(max_features=100, stop_words='english')
+    tfidf = tfidf_vectorizer.fit_transform(df['body'])
+    df_tfidf = pd.DataFrame(
+        tfidf.toarray(), 
+        columns=tfidf_vectorizer.get_feature_names()
+    )
+    df = pd.concat([df, df_tfidf], axis=1)
 
-    del df_raw
+    df.drop('body', axis=1, inplace=True)
 
-    return X, y
+    return df
 
 def main():
     return
