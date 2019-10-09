@@ -9,9 +9,15 @@ import matplotlib.pyplot as plt
 #S: Rien (fonction d'affichage)
 def mcov(df):
 	
+	csv = pd.read_csv('jultxt.csv',sep='\t', names=['id','body'])
 	
+	csv['body'] = csv['body'].apply(lambda x: len(x))
 	
 	df.drop(['downs','archived'],axis=1,inplace=True)
+	
+	print(df.columns, csv.columns)
+	print(df['id'])
+	df=df.merge(csv,on='id')
 	
 	object_columns = [
 		'subreddit_id', 
