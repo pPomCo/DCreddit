@@ -1,11 +1,9 @@
 import sqlite3
 
 
-DB_PATH = "../../../database.sqlite"
-
-def main(k=10):
+def main(k, db_path):
     
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c2 = conn.cursor()
 
@@ -28,9 +26,11 @@ if __name__ == "__main__":
         description="Create a CSV which associate link_ids to there top-k child comments (ranking using 'ups')")
     parser.add_argument('k', type=int, nargs='?', default=10,
                         help='Number of comments to attach to a link')
+   parser.add_argument('--db', type=str, help="Database path")
+ 
 
     args = parser.parse_args()
 
-    main(k=args.k)
+    main(k=args.k, db_path=args.db)
 
 

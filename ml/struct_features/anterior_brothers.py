@@ -1,11 +1,9 @@
 import sqlite3
 
 
-DB_PATH = "../../../database.sqlite"
-
-def main():
+def main(db_path):
     
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c2 = conn.cursor()
 
@@ -26,8 +24,9 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description="Create a CSV which associate comment_id to its k closest ancestors")
+    parser.add_argument('--db', type=str, help="Database path")
  
     args = parser.parse_args()
-    main()
+    main(args.db)
 
 
