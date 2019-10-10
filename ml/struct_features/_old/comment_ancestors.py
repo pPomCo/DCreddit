@@ -35,7 +35,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description="Create a CSV which associate comment_id to its k closest ancestors")
-   parser.add_argument('--db', type=str, help="Database path")
+    parser.add_argument('--db', type=str, help="Database path")
   
     args = parser.parse_args()
     main(args.db)

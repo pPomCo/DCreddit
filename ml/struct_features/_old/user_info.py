@@ -25,7 +25,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description="Create a CSV with some user info")
-   parser.add_argument('--db', type=str, help="Database path")
+    parser.add_argument('--db', type=str, help="Database path")
  
     args = parser.parse_args()
 
