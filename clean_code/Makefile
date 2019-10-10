@@ -1,13 +1,14 @@
 # You may need to adjust the following settings
 
+PROJECT_DIR = /projets/M2DC
 # Database
-DB = ../../sample.sqlite
+DB = $(PROJECT_DIR)/data/database.sqlite
 
 # Representation model
 SIMILARITY = bm25
 
 # Index directory
-INDEXDIR = index/$(SIMILARITY)/
+INDEXDIR = $(PROJECT_DIR)/index/$(SIMILARITY)/
 
 
 all: index
