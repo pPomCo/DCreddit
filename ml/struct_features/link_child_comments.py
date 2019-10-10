@@ -26,7 +26,7 @@ if __name__ == "__main__":
         description="Create a CSV which associate link_ids to there top-k child comments (ranking using 'ups')")
     parser.add_argument('k', type=int, nargs='?', default=10,
                         help='Number of comments to attach to a link')
-   parser.add_argument('--db', type=str, help="Database path")
+    parser.add_argument('--db', type=str, help="Database path")
  
 
     args = parser.parse_args()

@@ -30,6 +30,6 @@ $(UINFOS):
 
 
 clean:
-	rm -f link_child_comments.csv
+	rm -f $(LCHILDREN) $(ANCESTORS) $(BROTHERS) $(UINFOS)
 
 .PHONY: extract_all clean
