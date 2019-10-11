@@ -22,7 +22,10 @@ class FeatureExtractor(object):
             " MATCH p=(:Commentaire {nom: {cname}})-[:Parent*]->(:Post)"
             " RETURN NODES(p)",
             cname = comment_name)
-        return [n['nom'] for n in cursor.evaluate()]
+        res = cursor.evaluate()
+        if res  is not None:
+            return [n['nom'] for n in res]
+        return None
 
 
 

@@ -32,13 +32,15 @@ if __name__ == "__main__":
     letters = "abcdefghijklmnopqrstuvwxyz0123456789"
     for x0 in letters:
         for x1 in letters:
-            prefix = 't1_cq%s%s'%(x0,x1)
-            res = fx.execute(" MATCH path=(c:Commentaire)-[:Parent*]->(:Post)"
-                             " WHERE c.nom STARTS WITH {startwith}"
-                             " WITH NODES(path) AS ns"
-                             " RETURN ns",
-                             startwith=prefix)
-            if res != []:
-                print("\n".join(["\t".join([n['nom'] for n in d['ns']]) for d in res]))
+            for x2 in letters:
+                prefix = 't1_cq%s%s%s'%(x0,x1,x2)
+                res = fx.execute(" MATCH path=(c:Commentaire)-[:Parent*2..]->(:Post)"
+                                 " WHERE c.nom STARTS WITH {startwith}"
+                                 " WITH NODES(path) AS ns"
+                                 " RETURN ns",
+                                 startwith=prefix)
+                if res != []:
+                    print("\n".join(["\t".join([n['nom'] for n in d['ns']]) for d in res]))
+                    
 
     
