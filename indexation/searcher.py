@@ -62,7 +62,7 @@ def reorder_normups(scoreDocs, searcher, weights=(0.8,0.2)):
 
 
 
-def run(searcher, analyzer, reordering='no', show_bodies=True):
+def run(searcher, analyzer, ndocs=10, reordering='no', show_bodies=True):
     while True:
         print()
         print("Hit enter with no input to quit.")
@@ -74,7 +74,7 @@ def run(searcher, analyzer, reordering='no', show_bodies=True):
         print()
         print("Searching for:", command)
         query = QueryParser("body", analyzer).parse(command)
-        scoreDocs = searcher.search(query, N_DOCS).scoreDocs
+        scoreDocs = searcher.search(query, ndocs).scoreDocs
         print("%s total matching documents." % len(scoreDocs))
 
 
@@ -115,6 +115,8 @@ if __name__ == "__main__":
         description='Execute queries on comment body')
     parser.add_argument('index_dir', metavar='dir', type=str,
                         help="Index directory")
+    parser.add_argument('--ndocs', type=int, nargs='?',
+                        default=N_DOCS, help="Number of documents to return for each query")
     parser.add_argument('--sim', type=str, nargs='?',
                         default="tfidf", help="Similarity (in [tfidf, lm, bm25])")
     parser.add_argument('--reorder', type=str, nargs='?',
@@ -137,4 +139,4 @@ if __name__ == "__main__":
     if similarity is not None:
         searcher.setSimilarity(similarity)
     analyzer = StandardAnalyzer()
-    run(searcher, analyzer, reordering=args.reorder, show_bodies=not args.short)
+    run(searcher, analyzer, ndocs=args.ndocs, reordering=args.reorder, show_bodies=not args.short)
