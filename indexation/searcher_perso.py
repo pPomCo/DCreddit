@@ -1,5 +1,9 @@
 """
-Execute query on comments
+Execute query on comments -- results are personalized
+Using query reformulation
+
+Actually it's working, but seems to be less relevant than the not-personalized
+approch.
 
 Querying can be automated by piping a query-file into this program. Each line
 is a query, and an empty line (at least the last) stops the program.
@@ -7,12 +11,14 @@ is a query, and an empty line (at least the last) stops the program.
 Can set the representation model (TK-IDF, LM, BM25) depending on the index.
 """
 
+import user_profile as up_lib
+import searcher as s_lib
 import sys, os, lucene, threading, time
 
 from java.nio.file import Paths
 from org.apache.lucene.analysis.standard import StandardAnalyzer
 from org.apache.lucene.store import SimpleFSDirectory
-from org.apache.lucene.search import IndexSearcher
+from org.apache.lucene.search import IndexSearcher, BoostQuery, BooleanQuery
 from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.index import DirectoryReader
 from org.apache.lucene.search.similarities import \
@@ -29,49 +35,48 @@ def escape_lucene_special_chars(string):
     return string
 
 
-def reorder_ups(scoreDocs, searcher):
-    """Reorder results using the score 'n_docs - rank + ups'
 
-    Return (ordered_scoreDocs, score_values)"""
-    scores = {}
-    n_docs = len(scoreDocs)
-    for i, scoreDoc in enumerate(scoreDocs):
-        doc = searcher.doc(scoreDoc.doc)
-        scores[scoreDoc.doc] = (n_docs-i, int(doc.get('ups')))
-    scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
-    return scoreDocs, scores
+def reformulate_query(initial_query, searcher, analyzer, user_name):
+    """reformulate query using profile similarity"""
+    
+    profile = up_lib.user_profile(searcher, user_name)
 
-def reorder_normups(scoreDocs, searcher, weights=(0.8,0.2)):
-    """Reorder results using the score w[0]*sc_rank + w[1]*sc_ups
-       where sc_rank = (n_docs-rank)/n_docs
-             sc_ups = ups / max(abs(ups_of_subreddit))
+    # Vocabulary of his own comments
+    q_comm = QueryParser("name", analyzer).parse(" ".join(profile['comments']))
+    scoreDocs = searcher.search(q_comm, 1000).scoreDocs
+    w_comm = " ".join([searcher.doc(sd.doc).get('body') for sd in scoreDocs])
 
-    Return (ordered_scoreDocs, score_values)
-    """
-    scores = {}
-    n_docs = len(scoreDocs)
-    for i, scoreDoc in enumerate(scoreDocs):
-        doc = searcher.doc(scoreDoc.doc)
-        query_ups = QueryParser("subreddit", analyzer).parse(doc.get('subreddit'))
-        scoreDocs_ups = searcher.search(query_ups, 1000).scoreDocs
-        max_ups = 0
-        for sd_ups in scoreDocs_ups:
-            max_ups = max(max_ups, abs(int(searcher.doc(sd_ups.doc).get('ups'))))
-        if max_ups == 0:
-            max_ups = 1
+    # Vocabulary of the links he posts on
+    q_link = QueryParser("link_id", analyzer).parse(" ".join(profile['links']))
+    scoreDocs = searcher.search(q_link, 1000).scoreDocs
+    w_link = " ".join([searcher.doc(sd.doc).get('body') for sd in scoreDocs])
 
-        w_rank, w_ups = 0.7, 0.3
-        scores[scoreDoc.doc] = (w_rank * (n_docs-i)/n_docs,
-                                w_ups * int(doc.get('ups'))/max_ups)
-    scoreDocs = sorted(scoreDocs, key=lambda sd: -sum(scores[sd.doc]))
-    return scoreDocs, scores
+    # Vocabulary of the subreddit he posts on
+    q_subr = QueryParser("subreddit", analyzer).parse(" ".join(profile['subreddits']))
+    scoreDocs = searcher.search(q_link, 1000).scoreDocs
+    w_subr = " ".join([searcher.doc(sd.doc).get('body') for sd in scoreDocs])
+
+    # Print vocabularies
+##    print("\nComments vocabulary:", w_comm)
+##    print("\nLinks vocabulary:", w_link)
+##    print("\nSubreddits vocabulary:", w_subr)
 
 
+    # Reformulated query. Weights are not justified
+    reformulated_query = QueryParser("body", analyzer).parse(
+        "(%s)^1 (%s)^0.05 (%s)^0.03 (%s)^0.02"%(
+            escape_lucene_special_chars(initial_query),
+            escape_lucene_special_chars(w_comm),
+            escape_lucene_special_chars(w_link),
+            escape_lucene_special_chars(w_subr)
+            ))
 
+    return reformulated_query
 
 
 
-def run(searcher, analyzer, ndocs=10, reordering='no', show_bodies=True):
+
+def run(searcher, analyzer, user_name, reordering='no', show_bodies=True):
     while True:
         print()
         print("Hit enter with no input to quit.")
@@ -79,18 +84,20 @@ def run(searcher, analyzer, ndocs=10, reordering='no', show_bodies=True):
         if command == '':
             return
 
-##        command = escape_lucene_special_chars(command)
         print()
         print("Searching for:", command)
-        query = QueryParser("body", analyzer).parse(command)
-        scoreDocs = searcher.search(query, ndocs).scoreDocs
+
+        # Query reformulation
+        query = reformulate_query(command, searcher, analyzer, user_name)
+        
+        scoreDocs = searcher.search(query, N_DOCS).scoreDocs
         print("%s total matching documents." % len(scoreDocs))
 
 
         if reordering == 'ups':
-            scoreDocs, scores = reorder_ups(scoreDocs, searcher)
+            scoreDocs, scores = s_lib.reorder_ups(scoreDocs, searcher)
         elif reordering == 'normups':
-            scoreDocs, scores = reorder_normups(scoreDocs, searcher)
+            scoreDocs, scores = s_lib.reorder_normups(scoreDocs, searcher)
         else:
             n_docs = len(scoreDocs)
             scores = {sd.doc: (n_docs-i,) for i,sd in enumerate(scoreDocs)}
@@ -123,10 +130,10 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description='Execute queries on comment body')
+    parser.add_argument('user_name', type=str,
+                        help="User name (profile to use)")
     parser.add_argument('index_dir', metavar='dir', type=str,
                         help="Index directory")
-    parser.add_argument('--ndocs', type=int, nargs='?',
-                        default=N_DOCS, help="Number of documents to return for each query")
     parser.add_argument('--sim', type=str, nargs='?',
                         default="tfidf", help="Similarity (in [tfidf, lm, bm25])")
     parser.add_argument('--reorder', type=str, nargs='?',
@@ -149,4 +156,4 @@ if __name__ == "__main__":
     if similarity is not None:
         searcher.setSimilarity(similarity)
     analyzer = StandardAnalyzer()
-    run(searcher, analyzer, ndocs=args.ndocs, reordering=args.reorder, show_bodies=not args.short)
+    run(searcher, analyzer, args.user_name, reordering=args.reorder, show_bodies=not args.short)
