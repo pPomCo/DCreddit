@@ -1,0 +1,16 @@
+V : 00 : 01/10 : Comprehension du sujet
+V : 01 : 02/10 : Fonction auxiliaires
+V : 02 : 03/10 : Comprehension modele Bayésien
+V : 03 : 03/10 : Prermier modele bayésien
+V : 04 : 03/10 : Calcul precision modele
+V : 05 : 04/10 : Debug fonction aux
+V : 06 : 05/10 : Debug premier modele
+V : 07 : 05/10 : Test calcul de precision
+V : 08 : 10/10 : Invers Tree Model
+V : 09 : 09/10 : Matrice de var/covar (features enginering)
+V : 10 : 04/10 : Test nettoyage des données
+V : 11 : 09/10 : Features taille du body (nb mots)
+V : 12 : 10/10 : Features date par (/heures)
+V : 13 : 10/10 : Affichage pour rapport
+F : 14 : : Crossvalidation(invers tree boost)
+F : 15 : : Selection des attributs pertinants a l'aide de tests

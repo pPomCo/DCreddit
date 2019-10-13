@@ -67,3 +67,9 @@
 - **Tâches**
     - Requêtes personnalisées (reformulation de requête considérant le profil basique)
     - Évaluation système : requêtes aléatoires + présentation résultats
+
+#### Mardi 08/10
+- **Tâches**
+    - Mise en place du protocole d'évaluations des features
+    - Lancement de l'indexation sur la plateforme osirim
+    - Etudes des représentations vectorielles de documents (embeddings)
