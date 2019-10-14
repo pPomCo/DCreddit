@@ -9,16 +9,17 @@ import numpy as np
 import matplotlib.pyplot as pl
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
+from cleantext import clean_text
+from sklearn.decomposition import PCA
 
-#E: Les donnees en data frame, Un data frame comprenant l'id et le tableau du body 
+#E: Les donnees en data frame 
 #F: Ajoute la feature de la taille du body
 #S: Le dataframe modifié
-def addTailleBody(df,csv):
-	csv = pd.read_csv(csv,sep='\t', names=['id','taille_body'])
+def addTailleBody(df):
 	
-	csv['taille_body'] = csv['taille_body'].apply(lambda x: len(( " ".join(eval(x)) ).strip())) 
+	df['taille_body'] = df['body'].apply(lambda x : clean_text(x))
 	
-	df = df.merge(csv,on='id')
+	df['taille_body'] = df['taille_body'].apply(lambda x: len(x)) 
 	
 	return df
 
@@ -26,6 +27,7 @@ def addTailleBody(df,csv):
 #F: Ajoute la feature de l'heure (plus interessant que UTC)
 #S: Le dataframe modifié
 def addHour(df):
+	
 	df_heure = df[['id','created_utc']]
 	
 	df_heure['heure'] = df_heure['created_utc'].apply(lambda x:datetime.utcfromtimestamp(x).hour)
@@ -39,17 +41,22 @@ def addHour(df):
 #F: Ajoute la feature des word embedding (glove)
 #S: Le dataframe modifié
 def addWordEmbeding(df,csv):
+	
 	cols = [i for i in range(201)]
 	cols[200]='id'
+	
 	csv = pd.read_csv(csv,sep='\t',names=cols)
+	
 	df = df.merge(csv,on='id')
+	
 	return df
 
 #E: Les donnees en data frame
-#F: Créer la matrice de var covar pour nos données et l'afficher avec des nouvelle features
+#F: Créer la matrice de correlation pour nos données et l'afficher avec des nouvelle features
 #S: Rien (fonction d'affichage)
-def mcov(df):
+def mcor(df):
 	
+	###Clean Data
 	object_columns = [
 		'subreddit_id', 
 		'link_id', 
@@ -70,9 +77,9 @@ def mcov(df):
 	
 	df.fillna(d,inplace=True)
 	
-	###Affichage
-	
 	df.drop(['downs','archived'],axis=1,inplace=True)
+	
+	###Affichage
 
 	corr = df.corr()
 	
@@ -83,14 +90,14 @@ def mcov(df):
 	
 	cmap = sns.diverging_palette(220, 10, as_cmap=True)
 	
-	cmap2 = sns.cubehelix_palette(as_cmap=True)
-	
 	sns.heatmap(corr, cmap=cmap, mask=mask, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 	
 	df['upsNormalize'] = df['ups'].apply(lambda x: len(str(abs(x))))
 	
-	sns.pairplot(df, diag_kind="kde", markers="+",hue='upsNormalize')
+	palette = sns.color_palette("hls", 8)
+	
+	sns.pairplot(df, diag_kind="kde", markers="+",hue='upsNormalize',palette=palette)
 	
 	pl.show()
 	
@@ -115,7 +122,7 @@ def bodyVectorise(df):
 	
 	errors=[]
 	
-	for train_index, test_index in kf.split(x):
+	for train_index, test_indeowx in kf.split(x):
 		x_train =  x.iloc[train_index]
 		x_test = x.iloc[test_index]
 		
@@ -138,27 +145,59 @@ def bodyVectorise(df):
 	print("Erreur moyenne : ",np.mean(errors))
 
 	return
+
+#E: Le dataframe de nos donnees
+#F: Realise l'acp de nos donnees sur les features de word embeding
+#S: Le dataframe modifié
+def acp(df):
+	
+	pca = PCA(n_components=2)
+	
+	uselessFeatures =['subreddit_id', 'link_id', 'name', 
+	'author_flair_css_class', 'author_flair_text', 
+	'subreddit', 'id', 'removal_reason', 'author', 
+	'body', 'distinguished', 'parent_id','score_hidden',
+	'downs','score','edited','controversiality','created_utc'
+	,'ups','archived','gilded','retrieved_on','heure','taille_body']
+	
+	df2 = df.drop((uselessFeatures),axis=1)
+	
+	principalComponents = pca.fit_transform(df2)
+	
+	principalDf = pd.DataFrame(data = principalComponents
+             , columns = ['principal component 1', 'principal component 2'])
+	
+	df = pd.concat([df,principalDf], axis = 1)
+	
+	wordFeatures = [i for i in range(200)]
+	
+	df.drop((wordFeatures),axis=1,inplace=True)
+	
+	return df
+	
 	
 def main():
-	#Csv de la premiere heure
-	csv = 'jultxt.csv'
+	#Csv des word embeding de la premiere heure
 	csv2 = 'jultxtVec.csv'
-	#La premiere heure
-	df = get_data_db("../projet reddit/sample.sqlite")
-	#Les 3 premiers jours
-	#df = get_data_db("../projet reddit/sample_3days.sqlite")
 	
-	df = addTailleBody(df,csv)
+	#Les donnees de la premiere heure
+	df = get_data_db("../projet reddit/sample.sqlite")
+	#Des 3 premiers jours
+	df2 = get_data_db("../projet reddit/sample_3days.sqlite")
+	
+	#Ajout de features :
+	df = addTailleBody(df)
 	
 	df = addHour(df)
 	
 	df = addWordEmbeding(df,csv2)
 	
-	print(df)
+	df = acp(df)
 	
 	#bodyVectorise(df)
 	
-	#mcov(df)
+	mcor(df)
+	
 	return
 
 if __name__ == '__main__':
