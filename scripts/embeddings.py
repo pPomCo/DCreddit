@@ -12,10 +12,9 @@ from numpy import linalg as LA
 
 #%matplotlib inline
 #%matplotlib qt
-
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, accuracy_score, confusion_matrix, mean_absolute_error
+from sklearn.metrics.pairwise import euclidean_distances
 from sklearn import preprocessing
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from gensim.models import Word2Vec, KeyedVectors
@@ -29,7 +28,8 @@ banned_users = "set(['', '[deleted]', 'AutoModerator', 'autowikibot', 'TweetsInC
 #path_db= "/home/jeslev/Downloads/sample_3days.sqlite"
 glove_path = "/home/jeslev/masterUPS/M2/S1/Projet/glove.6B.200d.txt"
 tmp_path = "/home/jeslev/masterUPS/M2/S1/Projet/glove.6B.200d_word2vec.txt"
-
+fcomments_embeddings = "textVec.csv"
+fusers_embeddings = "userVec.csv"
 
 def connectDB(db="/home/jeslev/Downloads/sample_3days.sqlite"):
     '''
@@ -48,14 +48,12 @@ def importEmbeddings(glove_path):
     matrix_embeddings = np.zeros((maxwords,dim))
     word2num, num2word = dict(), dict()
     
-    
     with open(glove_path, 'r') as f:
         for idx,line in enumerate(f):
             values = line.split()
             word2num[values[0]] = idx#word = values[0]
             num2word[idx] = values[0]
-    
-    
+      
     embeddings_dict = {}
     with open(glove_path, 'r') as f:
         for idx,line in enumerate(f):
@@ -88,24 +86,6 @@ def getCleanedComments(conn):
         yield comment_id, author, subreddit_id, listwords
 
     
-def getCleanedUserComments(conn):
-    ignored_users = eval(banned_users)
-    query = "SELECT id, author, body from May2015"
-    for line in conn.execute(query):
-        comment_id = line[0]
-        author = line[1]
-        subreddit_id = line[2]
-        text = line[3]
-        
-        # if it is a banned user we skip
-        if author in ignored_users:
-            continue
-        
-        listwords = clean_text(text)
-        # empty string
-        if len(listwords)==0:
-            continue
-        
 def getVectorEmb(list_words, model, word2num, num2word, dim=200):
     '''
     Calculate vector embedding : average term vector of comment
@@ -129,17 +109,17 @@ def getVectorEmb(list_words, model, word2num, num2word, dim=200):
     return doc.astype(np.float16)
 
 
-def prepareEmbeddingSet(path_db="/home/jeslev/Downloads/sample_3days.sqlite"):
+def prepareEmbeddingSet():
     '''
     Create a file with all embeddings (200d) for each comment in the dataset
     '''
     print("Connecting db...")
-    db = connectDB(path_db)
+    db = connectDB()
     print("Loading Glove embeddings...")
     glove, word2num, num2word = importEmbeddings(glove_path)
     en = 0
     print("Cleaning text files...")
-    with open('textVec.csv', mode='w') as f:
+    with open(fcomments_embeddings, mode='w') as f:
         writer = csv.writer(f, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for comment_id, author, subreddit_id, listwords in getCleanedComments(db):
             
@@ -182,7 +162,6 @@ def processComments(chunk, com2sub, le, matrix, count_matrix):
     np.add.at(matrix,sub_ids,df[cols])
     np.add.at(count_matrix,sub_ids, 1)
     #print(matrix, np.sum(count_matrix))
-
     return matrix, count_matrix
 
 
@@ -205,10 +184,11 @@ def processUserComments(df, centre_clusters, uProf, topK=11):
 
     users = df['user']
     ndf = df[vcols] # comments vectors
-    dist_topics = np.zeros((ndf.shape[0], centre_clusters.shape[0] ))
-    for topic in range(centre_clusters.shape[0]):
-        #print(topic)
-        dist_topics[:,topic] = LA.norm(ndf-centre_clusters[topic,:], axis=1)
+#     dist_topics = np.zeros((ndf.shape[0], centre_clusters.shape[0] ))
+#     for topic in range(centre_clusters.shape[0]):
+#         print(topic)
+#         dist_topics[:,topic] = LA.norm(ndf-centre_clusters[topic,:], axis=1)
+    dist_topics = euclidean_distances(ndf, centre_clusters)
     best_index = np.argsort(dist_topics, axis=1)[:,:topK]
    
     print("Updating user vector...")
@@ -220,6 +200,7 @@ def processUserComments(df, centre_clusters, uProf, topK=11):
     
     return uProf
 
+
 def prepareUserEmbeddings():
     '''
     Write userVec file with the embedding profile for all users
@@ -230,22 +211,21 @@ def prepareUserEmbeddings():
 
     #load emb vectors
     print("Calculating users average...")
-    filename = 'textVec.csv'
+    filename = fcomments_embeddings
     vcols = [str(i) for i in range(200)]
     cols = np.append(np.array(['id','user','subr']), vcols)
-    chunksize = 3*(10 ** 5)
+    chunksize = 5*(10 ** 5)
     for chunk in pd.read_csv(filename, chunksize=chunksize ,sep='\t', header=None, names=cols):
-        print("Batch")
+        #print("Batch")
         vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
-        break
     
     print("Normalizing vectors...")
     #normalize vector
-    with open('userVec.csv', mode='w') as f:
+    with open(fusers_embeddings, mode='w') as f:
         writer = csv.writer(f, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for key,val in vecUsers.items():
             vectorU = val/val.max()
-            line = np.append( np.array([key]),vectorU)
+            line = np.append( np.array([key]),vectorU.astype(np.float16))
             writer.writerow(line)
 
 
@@ -268,8 +248,8 @@ def subreddit2vector():
 
     #load emb vectors
     print("Calculatin subreddits average...")
-    filename = 'textVec.csv'
-    chunksize = 3*(10 ** 5)
+    filename = fcomments_embeddings
+    chunksize = 5*(10 ** 5)
     for chunk in pd.read_csv(filename, chunksize=chunksize ,sep='\t', header=None):
         sreddit_matrix, count_sreddit_matrix = \
             processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
@@ -289,20 +269,16 @@ def subreddit2vector():
     np.save('cluster_centers',kmeans.cluster_centers_)
 
 
-def main(argv):
-    
+def main(argv):    
     if args.comments:
         #prepareEmbeddingSet(args.db)
         prepareEmbeddingSet()
-   
     if args.subreddits:
         subreddit2vector()
-
     if args.users:
         prepareUserEmbeddings()
     
-   
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-db', dest='db')
@@ -310,5 +286,4 @@ if __name__ == "__main__":
     parser.add_argument('-s',  '--subreddits', action='store_true')
     parser.add_argument('-u',  '--users', action='store_true')
     args = parser.parse_args()
-    # ... do something with args.output ...
     main(args)
