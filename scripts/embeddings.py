@@ -5,8 +5,6 @@ import pandas as pd
 import datetime
 from array import array
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 from numpy import linalg as LA
 
@@ -23,13 +21,13 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 
 from cleantext import *
 
+
 banned_users = "set(['', '[deleted]', 'AutoModerator', 'autowikibot', 'TweetsInCommentsBot', 'TweetPoster', 'TrollaBot', 'MTGCardFetcher', 'havoc_bot', 'TotesMessenger', 'TheNitromeFan', 'PoliticBot', 'autotldr', 'Late_Night_Grumbler', 'SharksPwn', 'WritingPromptsRobot', 'atomicimploder', 'Marvelvsdc00'])"
 
-default_path_db= "/home/jeslev/Downloads/sample_3days.sqlite"
-glove_path = "/home/jeslev/masterUPS/M2/S1/Projet/glove.6B.200d.txt"
-tmp_path = "/home/jeslev/masterUPS/M2/S1/Projet/glove.6B.200d_word2vec.txt"
-fcomments_embeddings = "textVec.csv"
-fusers_embeddings = "userVec.csv"
+default_path_db= "/projets/M2DC/data/database.sqlite"
+glove_path = "/projets/M2DC/team_JJJP/embeddings/glove.6B.200d.txt"
+comments_embeddings = "/projets/M2DC/team_JJJP/embeddings/textVec.csv"
+fusers_embeddings = "/projets/M2DC/team_JJJP/embeddings/userVec.csv"
 chunksize = 1*(10 ** 5)
 
 def connectDB(db=default_path_db):
@@ -146,12 +144,12 @@ def prepareEmbeddingSet():
     Create a file with all embeddings (200d) for each comment in the dataset
     Returns: Write a CSV file with all the vector for the database comments
     '''
-    print("Connecting db...")
+    print("Connecting db...",flush=True)
     db = connectDB()
-    print("Loading Glove embeddings...")
+    print("Loading Glove embeddings...",flush=True)
     glove, word2num, num2word = importEmbeddings(glove_path)
     en = 0
-    print("Cleaning text files...")
+    print("Cleaning text files...",flush=True)
     with open(fcomments_embeddings, mode='w') as f:
         writer = csv.writer(f, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for comment_id, author, subreddit_id, listwords in getCleanedComments(db):
@@ -225,7 +223,7 @@ def processUserComments(df, centre_clusters, uProf, topK=11):
     dist_topics = euclidean_distances(ndf, centre_clusters)
     best_index = np.argsort(dist_topics, axis=1)[:,:topK]
    
-    print("Updating user vector...")
+    #print("Updating user vector...")
     prefs = np.array([i for i in range(1,12)])
     for user,best_topics in zip(users, best_index):
         vuser = uProf.get(user, np.zeros(500))
@@ -239,12 +237,12 @@ def prepareUserEmbeddings():
     '''
     Write userVec file with the embedding profile for all users
     '''
-    print("Reading clusters...")
+    print("Reading clusters...",flush=True)
     vecUsers = dict()
     centre_clusters = np.load('cluster_centers.npy')
 
     #load emb vectors
-    print("Calculating users average...")
+    print("Calculating users average...",flush=True)
     filename = fcomments_embeddings
     vcols = [str(i) for i in range(200)]
     cols = np.append(np.array(['id','user','subr']), vcols)
@@ -253,7 +251,7 @@ def prepareUserEmbeddings():
         #print("Batch")
         vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
     
-    print("Normalizing vectors...")
+    print("Normalizing vectors...",flush=True)
     #normalize vector
     with open(fusers_embeddings, mode='w') as f:
         writer = csv.writer(f, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -267,9 +265,9 @@ def prepareUserEmbeddingsOnline():
     '''
     Write userVec file with the embedding profile for all users
     '''
-    print("Connecting db...")
+    print("Connecting db...",flush=True)
     db = connectDB()
-    print("Loading Glove embeddings...")
+    print("Loading Glove embeddings...",flush=True)
     glove, word2num, num2word = importEmbeddings(glove_path)
     
     vecUsers = dict()
@@ -278,21 +276,39 @@ def prepareUserEmbeddingsOnline():
     #load emb vectors
     vcols = [str(i) for i in range(200)]
     cols = np.append(np.array(['id','user','subr']), vcols)
-    print("Cleaning text files...")
-    query = "SELECT id, author, subreddit_id, body FROM May2015 WHERE created_utc<1432512000 LIMIT 500000"
-    db.execute(query)
-    for batch in iter(lambda: db.fetchmany(chunksize), []):
+    print("Cleaning text files...",flush=True)
+    query = "SELECT id, author, subreddit_id, body FROM May2015 WHERE created_utc<1432512000"
+    results = db.execute(query)
+    count = 0
+    batch, dfbatch = [], []
+    for line in results:
+    	if count <chunksize:
+	    	batch.append(line)
+			count = count +1
+            continue
+        batch.append(line)
         dfbatch = []
-    
-        for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+		for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
             docVec = getVectorEmb(listwords, glove, word2num, num2word)
             tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
             dfbatch.append(tline)
-        print("Processing batch")
+        
+        print("Processing batch",flush=True)
         chunk = pd.DataFrame(dfbatch, columns = cols) 
         vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
-    
-    print("Normalizing vectors...")
+            
+    # Remaining ones
+    dfbatch = []
+    for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+        docVec = getVectorEmb(listwords, glove, word2num, num2word)
+        tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
+        dfbatch.append(tline)    
+    print("Processing batch",flush=True)
+    chunk = pd.DataFrame(dfbatch, columns = cols) 
+    vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
+
+
+    print("Normalizing vectors...",flush=True)
     #normalize vector
     with open(fusers_embeddings, mode='w') as f:
         writer = csv.writer(f, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -308,26 +324,26 @@ def subreddit2vector():
     Returns: Save subreddit_matrix and cluster_centers variables
     '''
 
-    print("Preparing subreddits info...")
+    print("Preparing subreddits info...",flush=True)
     le = preprocessing.LabelEncoder()
     allsubs, com2sub = getAllSubReddits() # get all Subreddits
     le.fit(list(allsubs))
     subdict = dict() # id_sub -> vector
 
-    print("Getting comments vector")
+    print("Getting comments vector",flush=True)
     # store accum vector for each subreddit
     totsubs = len(allsubs) # total subreddits
     sreddit_matrix = np.zeros((totsubs,200))
     count_sreddit_matrix = np.zeros(totsubs)
 
     #load emb vectors
-    print("Calculating subreddits average...")
+    print("Calculating subreddits average...",flush=True)
     filename = fcomments_embeddings
     for chunk in pd.read_csv(filename, chunksize=chunksize ,sep='\t', header=None):
         sreddit_matrix, count_sreddit_matrix = \
             processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
 
-    print("Finishin subreddit vectors...")
+    print("Finishin subreddit vectors...",flush=True)
     # Get average of comments in subreddit
     avg_matrix = np.divide(sreddit_matrix, count_sreddit_matrix[:,None], where=count_sreddit_matrix[:,None]!=0)
     # Save it!
@@ -348,41 +364,59 @@ def subreddit2vectorOnline():
     Returns: Save subreddit_matrix and cluster_centers variables
     '''
 
-    print("Connecting db...")
+    print("Connecting db...",flush=True)
     db = connectDB()
-    print("Loading Glove embeddings...")
+    print("Loading Glove embeddings...",flush=True)
     glove, word2num, num2word = importEmbeddings(glove_path)
     
-    print("Preparing subreddits info...")
+    print("Preparing subreddits info...",flush=True)
     le = preprocessing.LabelEncoder()
     allsubs, com2sub = getAllSubReddits() # get all Subreddits
     le.fit(list(allsubs))
     subdict = dict() # id_sub -> vector
 
-    print("Getting comments vector")
+    print("Getting comments vector",flush=True)
     # store accum vector for each subreddit
     totsubs = len(allsubs) # total subreddits
     sreddit_matrix = np.zeros((totsubs,200))
     count_sreddit_matrix = np.zeros(totsubs)
 
     #load emb vectors
-    print("Cleaning text files...")
-    query = "SELECT id, author, subreddit_id, body FROM May2015 WHERE created_utc<1432512000 LIMIT 500000"
-    db.execute(query)
-    for batch in iter(lambda: db.fetchmany(chunksize), []):
+    print("Cleaning text files...",flush=True)
+    query = "SELECT id, author, subreddit_id, body FROM May2015 WHERE created_utc<1432512000"
+    results = db.execute(query)
+
+    count = 0
+    batch, dfbatch = [], []
+    for line in results:
+        if count <chunksize:
+	    	batch.append(line)
+            count = count +1
+            continue
+        batch.append(line)
         dfbatch = []
-    
-        for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+		for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
             docVec = getVectorEmb(listwords, glove, word2num, num2word)
             tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
-            dfbatch.append(tline)
-        print("Processing batch")
-        chunk = pd.DataFrame(dfbatch)
-        
-        sreddit_matrix, count_sreddit_matrix = \
-            processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
+        	dfbatch.append(tline)
+    	print("Processing batch",flush=True)
+		chunk = pd.DataFrame(dfbatch)   
+		sreddit_matrix, count_sreddit_matrix = \
+             processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
 
-    print("Ending subreddit vectors...")
+    # Remaining ones        
+    dfbatch = []
+    for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+        docVec = getVectorEmb(listwords, glove, word2num, num2word)
+        tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
+        dfbatch.append(tline)
+    print("Processing batch",flush=True)
+    chunk = pd.DataFrame(dfbatch)   
+    sreddit_matrix, count_sreddit_matrix = \
+        processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
+
+
+    print("Ending subreddit vectors...",flush=True)
     # Get average of comments in subreddit
     avg_matrix = np.divide(sreddit_matrix, count_sreddit_matrix[:,None], where=count_sreddit_matrix[:,None]!=0)
     # Save it!
