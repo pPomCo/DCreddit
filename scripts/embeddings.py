@@ -283,19 +283,19 @@ def prepareUserEmbeddingsOnline():
     batch, dfbatch = [], []
     for line in results:
     	if count <chunksize:
-	    	batch.append(line)
-			count = count +1
-            continue
-        batch.append(line)
-        dfbatch = []
-		for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
-            docVec = getVectorEmb(listwords, glove, word2num, num2word)
-            tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
-            dfbatch.append(tline)
-        
-        print("Processing batch",flush=True)
-        chunk = pd.DataFrame(dfbatch, columns = cols) 
-        vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
+    		batch.append(line)
+    		count = count +1
+    		continue
+    	batch.append(line)
+    	dfbatch = []
+    	for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+    		docVec = getVectorEmb(listwords, glove, word2num, num2word)
+    		tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
+    		dfbatch.append(tline)
+
+    	print("Processing batch",flush=True)
+    	chunk = pd.DataFrame(dfbatch, columns = cols) 
+    	vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
             
     # Remaining ones
     dfbatch = []
@@ -390,19 +390,19 @@ def subreddit2vectorOnline():
     batch, dfbatch = [], []
     for line in results:
         if count <chunksize:
-	    	batch.append(line)
-            count = count +1
-            continue
+        	batch.append(line)
+        	count = count +1
+        	continue
         batch.append(line)
         dfbatch = []
-		for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
-            docVec = getVectorEmb(listwords, glove, word2num, num2word)
-            tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
+        for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
+        	docVec = getVectorEmb(listwords, glove, word2num, num2word)
+        	tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
         	dfbatch.append(tline)
-    	print("Processing batch",flush=True)
-		chunk = pd.DataFrame(dfbatch)   
-		sreddit_matrix, count_sreddit_matrix = \
-             processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
+        print("Processing batch",flush=True)
+        chunk = pd.DataFrame(dfbatch)
+        sreddit_matrix, count_sreddit_matrix = \
+        	processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
 
     # Remaining ones        
     dfbatch = []
