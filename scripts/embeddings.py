@@ -1,6 +1,6 @@
 import sys, argparse
 from collections import Counter
-import sqlite3, math, csv, re
+import sqlite3, math, csv, re, gc
 import pandas as pd
 import datetime
 from array import array
@@ -28,7 +28,7 @@ default_path_db= "/projets/M2DC/data/database.sqlite"
 glove_path = "/projets/M2DC/team_JJJP/embeddings/glove.6B.200d.txt"
 comments_embeddings = "/projets/M2DC/team_JJJP/embeddings/textVec.csv"
 fusers_embeddings = "/projets/M2DC/team_JJJP/embeddings/userVec.csv"
-chunksize = 1*(10 ** 5)
+chunksize = 3*(10 ** 5)
 
 def connectDB(db=default_path_db):
     '''
@@ -187,13 +187,17 @@ def processComments(chunk, com2sub, le, matrix, count_matrix):
     df = chunk#pd.DataFrame(chunk)
     #print(df.head())
     cols = [i for i in range(3,203)]  # col names for df
-    comm = df[0] # comment id
-    comments_sub_names = comm.apply(lambda x: com2sub[x])
-    sub_ids = le.transform(comments_sub_names)
+    try:
+    	comm = df[0] # comment id
+    	comments_sub_names = comm.apply(lambda x: com2sub[x])
+    	sub_ids = le.transform(comments_sub_names)
+
     
-    np.add.at(matrix,sub_ids,df[cols].astype(np.single))
-    np.add.at(count_matrix,sub_ids, 1)
-    #print(matrix, np.sum(count_matrix))
+    	np.add.at(matrix,sub_ids,df[cols].astype(np.single))
+    	np.add.at(count_matrix,sub_ids, 1)
+    	#print(matrix, np.sum(count_matrix))
+    except:
+    	print("Error: ", df.head(), df.shape)
     return matrix, count_matrix
 
 
@@ -288,24 +292,28 @@ def prepareUserEmbeddingsOnline():
     		continue
     	batch.append(line)
     	dfbatch = []
+    	count=0
     	for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
     		docVec = getVectorEmb(listwords, glove, word2num, num2word)
     		tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
     		dfbatch.append(tline)
-
+    	batch = []
     	print("Processing batch",flush=True)
     	chunk = pd.DataFrame(dfbatch, columns = cols) 
     	vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
+    	gc.collect()
             
     # Remaining ones
     dfbatch = []
     for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
         docVec = getVectorEmb(listwords, glove, word2num, num2word)
         tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
-        dfbatch.append(tline)    
-    print("Processing batch",flush=True)
+        dfbatch.append(tline)
+    batch = []
+    print("Processing final batch",flush=True)
     chunk = pd.DataFrame(dfbatch, columns = cols) 
     vecUsers = processUserComments(chunk, centre_clusters, vecUsers)
+    gc.collect()
 
 
     print("Normalizing vectors...",flush=True)
@@ -394,15 +402,18 @@ def subreddit2vectorOnline():
         	count = count +1
         	continue
         batch.append(line)
+        count=0
         dfbatch = []
         for comment_id, author, subreddit_id, listwords in getCleanedCommentsInBatch(batch):
         	docVec = getVectorEmb(listwords, glove, word2num, num2word)
         	tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
         	dfbatch.append(tline)
+        batch = []
         print("Processing batch",flush=True)
         chunk = pd.DataFrame(dfbatch)
         sreddit_matrix, count_sreddit_matrix = \
         	processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
+        gc.collect()
 
     # Remaining ones        
     dfbatch = []
@@ -410,6 +421,7 @@ def subreddit2vectorOnline():
         docVec = getVectorEmb(listwords, glove, word2num, num2word)
         tline = np.append(np.array([comment_id, author, subreddit_id]),docVec)
         dfbatch.append(tline)
+    batch = []
     print("Processing batch",flush=True)
     chunk = pd.DataFrame(dfbatch)   
     sreddit_matrix, count_sreddit_matrix = \
@@ -417,8 +429,11 @@ def subreddit2vectorOnline():
 
 
     print("Ending subreddit vectors...",flush=True)
+    np.save('sreddit_matrix',sreddit_matrix)
+    np.save('count_sreddit_matrix',count_sreddit_matrix)
     # Get average of comments in subreddit
-    avg_matrix = np.divide(sreddit_matrix, count_sreddit_matrix[:,None], where=count_sreddit_matrix[:,None]!=0)
+    count_sreddit_matrix[count_sreddit_matrix==0] = 1
+    avg_matrix = np.divide(sreddit_matrix, count_sreddit_matrix[:,None])
     # Save it!
     np.save('subreddit_matrix',avg_matrix)
 
@@ -428,7 +443,6 @@ def subreddit2vectorOnline():
     kmeans = KMeans(n_clusters=500, random_state=42)
     kmeans = kmeans.fit(avg_matrix)
     np.save('cluster_centers',kmeans.cluster_centers_)
-    
     
     
 def main(argv):    
