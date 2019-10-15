@@ -192,11 +192,11 @@ def main():
 	#csv2 = 'jultxtVec.csv'
 	
 	#Les donnees de la premiere heure
-	#df = get_data_db("../projet reddit/sample.sqlite")
+	df = get_data_db("../projet reddit/sample.sqlite")
 	#Des 3 premiers jours
 	#df2 = get_data_db("../projet reddit/sample_3days.sqlite")
 	#Chemin de la base de données entiere sur osirim jhuteau
-	df = get_data_db("~/../../../projets/M2DC/data/database.sqlite")
+	#df = get_data_db("/projets/M2DC/data/database.sqlite")
 	
 	#Ajout de features :
 	df = addTailleBody(df)
