@@ -161,8 +161,8 @@ def bodyVectorise(df):
 #F: Realise l'acp de nos donnees sur les features de word embeding
 #S: Le dataframe modifié
 def acp(df):
-	
-	pca = PCA(n_components=2)
+	n_components = 10
+	pca = PCA(n_components=n_components)
 	
 	uselessFeatures =['subreddit_id', 'link_id', 'name', 
 	'author_flair_css_class', 'author_flair_text', 
@@ -176,7 +176,9 @@ def acp(df):
 	principalComponents = pca.fit_transform(df2)
 	
 	principalDf = pd.DataFrame(data = principalComponents
-             , columns = ['component 1', 'component 2'])
+             , columns = [
+             'component '+str(i+1) for i in range(n_components)
+             ])
 	
 	df = pd.concat([df,principalDf], axis = 1)
 	

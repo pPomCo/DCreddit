@@ -2,7 +2,7 @@
 
 # SBATCH options :
 #SBATCH --job-name=M2DC
-#SBATCH --output=pylucene.txt
+#SBATCH --output=bonsoir.txt
 
 #SBATCH --mail-type=END
 #SBATCH --mail-user=xzaitsevx@gmail.com
