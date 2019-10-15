@@ -1,0 +1,6 @@
+[34mINFO:   [0m Could not find any NVIDIA binaries on this host!
+Traceback (most recent call last):
+  File "exploration.py", line 7, in <module>
+    import seaborn as sns
+ModuleNotFoundError: No module named 'seaborn'
+srun: error: 24cpu-nc11: task 0: Exited with exit code 1
