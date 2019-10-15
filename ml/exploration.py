@@ -6,7 +6,7 @@ from xgboost import XGBRegressor
 import pandas as pd
 import seaborn as sns
 import numpy as np
-import matplotlob as mpl
+import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as pl
 from sklearn.metrics import mean_absolute_error
@@ -205,10 +205,10 @@ def main():
 	
 	df = addHour(df)
 	
-	df = addWordEmbeding(df,csv2)
+	#df = addWordEmbeding(df,csv2)
 	
 	#Modification des features de word embedings
-	df = acp(df)
+	#df = acp(df)
 	
 	#bodyVectorise(df)
 	
