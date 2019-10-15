@@ -5,7 +5,7 @@
 #SBATCH --output=pylucene.txt
 
 #SBATCH --mail-type=END
-#SBATCH --mail-user=jeremie.huteau@irit.fr
+#SBATCH --mail-user=xzaitsevx@gmail.com
 
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
@@ -18,5 +18,5 @@ TEAM_DIR=$PROJECT_DIR/team_JJJP
 CONDA_ENV_DIR=$HOME/.conda/envs/DCreddit
 GIT_DIR=$HOME/DCreddit
 
-srun singularity exec /logiciels/containerCollections/CUDA10/vanilla_10.0.sif $CONDA_ENV_DIR/bin/python3 clean_text.py
+srun singularity exec /logiciels/containerCollections/CUDA10/vanilla_10.0.sif $CONDA_ENV_DIR/bin/python3 exploration.py
 

@@ -6,6 +6,8 @@ from xgboost import XGBRegressor
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import matplotlob as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as pl
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
@@ -93,13 +95,17 @@ def mcor(df):
 	sns.heatmap(corr, cmap=cmap, mask=mask, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 	
+	pl.savefig("Correlation matrice.png", bbox_inches='tight')
+	
 	df['upsNormalize'] = df['ups'].apply(lambda x: len(str(abs(x))))
 	
 	palette = sns.color_palette("hls", 8)
 	
 	sns.pairplot(df, diag_kind="kde", markers="+",hue='upsNormalize',palette=palette)
 	
-	pl.show()
+	#pl.show()
+	#Les plt.savefig sont uniquement pour l'execution sur Osirim
+	pl.savefig("Affichage Donnees.png", bbox_inches='tight')
 	
 	return
 	
@@ -122,6 +128,8 @@ def bodyVectorise(df):
 	
 	errors=[]
 	
+	cpt = 0
+	
 	for train_index, test_indeowx in kf.split(x):
 		x_train =  x.iloc[train_index]
 		x_test = x.iloc[test_index]
@@ -137,10 +145,13 @@ def bodyVectorise(df):
 		pl.scatter(y_test, y_pred,marker='+')
 		pl.xlabel("True Values")
 		pl.ylabel("Predictions")
+		pl.savefig("Valeur - Predictions",cpt,".png", bbox_inches='tight')
 		pl.show()
 	
 		mae = mean_absolute_error(y_test,y_pred)
 		errors.append(mae)
+		
+		cpt = cpt +1
 	
 	print("Erreur moyenne : ",np.mean(errors))
 
@@ -165,7 +176,7 @@ def acp(df):
 	principalComponents = pca.fit_transform(df2)
 	
 	principalDf = pd.DataFrame(data = principalComponents
-             , columns = ['principal component 1', 'principal component 2'])
+             , columns = ['component 1', 'component 2'])
 	
 	df = pd.concat([df,principalDf], axis = 1)
 	
@@ -178,12 +189,14 @@ def acp(df):
 	
 def main():
 	#Csv des word embeding de la premiere heure
-	csv2 = 'jultxtVec.csv'
+	#csv2 = 'jultxtVec.csv'
 	
 	#Les donnees de la premiere heure
-	df = get_data_db("../projet reddit/sample.sqlite")
+	#df = get_data_db("../projet reddit/sample.sqlite")
 	#Des 3 premiers jours
-	df2 = get_data_db("../projet reddit/sample_3days.sqlite")
+	#df2 = get_data_db("../projet reddit/sample_3days.sqlite")
+	#Chemin de la base de données entiere sur osirim jhuteau
+	df = get_data_db("~/../../../projets/M2DC/data/database.sqlite")
 	
 	#Ajout de features :
 	df = addTailleBody(df)
@@ -192,6 +205,7 @@ def main():
 	
 	df = addWordEmbeding(df,csv2)
 	
+	#Modification des features de word embedings
 	df = acp(df)
 	
 	#bodyVectorise(df)
