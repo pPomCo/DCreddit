@@ -88,14 +88,17 @@ def mcor(df):
 	mask = np.zeros_like(corr, dtype=np.bool)
 	mask[np.triu_indices_from(mask)] = True
 	
-	f, ax = pl.subplots(figsize=(11, 10))
+	fig = plt.figure()
+	ax = fig.add_subplot(pl.subplots(figsize=(11, 10)))
+	fig.savefig('temp.png')
+	#f, ax = pl.subplots(figsize=(11, 10))
 	
 	cmap = sns.diverging_palette(220, 10, as_cmap=True)
 	
 	sns.heatmap(corr, cmap=cmap, mask=mask, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 	
-	pl.savefig("Correlation matrice.png", bbox_inches='tight')
+	#pl.savefig("Correlation matrice.png", bbox_inches='tight')
 	
 	df['upsNormalize'] = df['ups'].apply(lambda x: len(str(abs(x))))
 	
@@ -146,7 +149,7 @@ def bodyVectorise(df):
 		pl.xlabel("True Values")
 		pl.ylabel("Predictions")
 		pl.savefig("Valeur - Predictions",cpt,".png", bbox_inches='tight')
-		pl.show()
+		#pl.show()
 	
 		mae = mean_absolute_error(y_test,y_pred)
 		errors.append(mae)
