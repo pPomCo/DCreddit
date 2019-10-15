@@ -1,3 +1,6 @@
+import matplotlib as mpl
+mpl.use("Agg")
+import matplotlib.pyplot as pl
 from preprocessing import *
 from datetime import datetime
 from dateutil import tz
@@ -7,7 +10,6 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 import matplotlib as mpl
-mpl.use("Agg")
 import matplotlib.pyplot as pl
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
@@ -88,9 +90,9 @@ def mcor(df):
 	mask = np.zeros_like(corr, dtype=np.bool)
 	mask[np.triu_indices_from(mask)] = True
 	
-	fig = plt.figure()
-	ax = fig.add_subplot(pl.subplots(figsize=(11, 10)))
-	fig.savefig('temp.png')
+	fig = pl.figure()
+	pl.subplots(figsize=(11, 10))
+	#pl.savefig('temp.png')
 	#f, ax = pl.subplots(figsize=(11, 10))
 	
 	cmap = sns.diverging_palette(220, 10, as_cmap=True)
@@ -98,7 +100,9 @@ def mcor(df):
 	sns.heatmap(corr, cmap=cmap, mask=mask, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 	
-	#pl.savefig("Correlation matrice.png", bbox_inches='tight')
+	pl.savefig("Correlation matrice.png", bbox_inches='tight')
+	
+	fig = pl.figure() 
 	
 	df['upsNormalize'] = df['ups'].apply(lambda x: len(str(abs(x))))
 	
@@ -144,7 +148,9 @@ def bodyVectorise(df):
 		model.fit(x_train,y_train)
 	
 		y_pred = model.predict(x_test)
-	
+		
+		fig = pl.figure()		
+
 		pl.scatter(y_test, y_pred,marker='+')
 		pl.xlabel("True Values")
 		pl.ylabel("Predictions")
