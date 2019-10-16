@@ -119,13 +119,13 @@ def mcor(df):
 #E: Le dataframe de nos donnees
 #F: Affiche la mae pour un xgboost regressor des données avec le word embeding
 #S: Le dataframe modifié
-def bodyVectorise(df):
+def bodyVectorise(x):
 	
 	uselessFeatures =['subreddit_id', 'link_id', 'name', 
 	'author_flair_css_class', 'author_flair_text', 
 	'subreddit', 'id', 'removal_reason', 'author', 
 	'body', 'distinguished', 'parent_id','score_hidden',
-	'downs','score']
+	'score','upsNormalize']
 	
 	x.drop((uselessFeatures),axis=1,inplace=True)
 		
@@ -137,7 +137,7 @@ def bodyVectorise(df):
 	
 	cpt = 0
 	
-	for train_index, test_indeowx in kf.split(x):
+	for train_index, test_index in kf.split(x):
 		x_train =  x.iloc[train_index]
 		x_test = x.iloc[test_index]
 		
@@ -154,7 +154,7 @@ def bodyVectorise(df):
 		pl.scatter(y_test, y_pred,marker='+')
 		pl.xlabel("True Values")
 		pl.ylabel("Predictions")
-		pl.savefig("Valeur - Predictions",cpt,".png", bbox_inches='tight')
+		pl.savefig("Valeur - Predictions"+str(cpt)+".png", bbox_inches='tight')
 		#pl.show()
 	
 		mae = mean_absolute_error(y_test,y_pred)
@@ -162,7 +162,12 @@ def bodyVectorise(df):
 		
 		cpt = cpt +1
 	
+	print("##################################")
+	print("Les attributs utilisés pour la regression")
+	print(x.axes)
+	print("##################################")
 	print("Erreur moyenne : ",np.mean(errors))
+	print("#################################")
 
 	return
 
@@ -203,11 +208,11 @@ def main():
 	#csv2 = 'jultxtVec.csv'
 	
 	#Les donnees de la premiere heure
-	df = get_data_db("../projet reddit/sample.sqlite")
+	#df = get_data_db("../projet reddit/sample.sqlite")
 	#Des 3 premiers jours
 	#df2 = get_data_db("../projet reddit/sample_3days.sqlite")
 	#Chemin de la base de données entiere sur osirim jhuteau
-	#df = get_data_db("/projets/M2DC/data/database.sqlite")
+	df = get_data_db("/projets/M2DC/data/database.sqlite")
 	
 	#Ajout de features :
 	df = addTailleBody(df)
@@ -218,10 +223,10 @@ def main():
 	
 	#Modification des features de word embedings
 	#df = acp(df)
-	
-	#bodyVectorise(df)
-	
+		
 	mcor(df)
+
+	bodyVectorise(df)
 	
 	return
 

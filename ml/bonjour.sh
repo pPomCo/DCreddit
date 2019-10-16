@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SBATCH options :
-#SBATCH --job-name=M2DC
+#SBATCH --job-name=JulianCorrelation
 #SBATCH --output=bonsoir.txt
 
 #SBATCH --mail-type=END
