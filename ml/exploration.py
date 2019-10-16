@@ -125,7 +125,7 @@ def bodyVectorise(x):
 	'author_flair_css_class', 'author_flair_text', 
 	'subreddit', 'id', 'removal_reason', 'author', 
 	'body', 'distinguished', 'parent_id','score_hidden',
-	'score','upsNormalize']
+	'score','downs','archived']
 	
 	x.drop((uselessFeatures),axis=1,inplace=True)
 		
@@ -226,7 +226,7 @@ def main():
 		
 	mcor(df)
 
-	bodyVectorise(df)
+	#bodyVectorise(df)
 	
 	return
 

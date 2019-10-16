@@ -61,7 +61,7 @@ def get_data_db(path_to_db):
     data = pd.read_sql_query("""
         SELECT *
         FROM May2015
-        LIMIT 50000000
+        LIMIT 3000000
     """, connection)
 
     return data
