@@ -224,9 +224,9 @@ def main():
 	#Modification des features de word embedings
 	#df = acp(df)
 		
-	mcor(df)
+	#mcor(df)
 
-	#bodyVectorise(df)
+	bodyVectorise(df)
 	
 	return
 
