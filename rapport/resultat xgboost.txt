@@ -1,0 +1,9 @@
+sans les word embedings		7.5	
+avec les word embedings	
+avec l'acp
+avec les ups des parents
+
+
+matrice de corr du meilleur
+
+	
