@@ -162,8 +162,8 @@ def prepareEmbeddingSet():
             en+=1
             if en%100000==0:
                 print(en)
-	    if en==3000000:
-		return    
+            if en==3000000:
+                return
 
 def getAllSubReddits():
     '''
