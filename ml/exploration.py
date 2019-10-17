@@ -51,7 +51,7 @@ def addWordEmbeding(df,csv):
     
     csv = pd.read_csv(csv,sep='\t',names=cols)
     
-    df = df.merge(csv,on='id')
+    df = df.merge(csv,left_on='id',right_on='comment_id')
     
     return df
     
