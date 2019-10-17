@@ -61,13 +61,10 @@ def addWordEmbeding(df,csv):
 def addParentUps(df):
     
     df2 = df[['ups','id']].copy().set_index('id')
+
+    listeId = df2.index.values.tolist()
     
-    print('df2.id.get(x, NaN)')
-    
-    #df['parentUps'] = df['parent_id'].apply(lambda x: df2.loc[x,'ups'])
-    #df['parentUps'] = df['parent_id'].apply(lambda x: df2.loc[x,'ups'])
-    
-    #print(df)
+    df['parentUps'] = df['parent_id'].apply(lambda x: 1 if x not in listeId else df2.loc[x,'ups'])
     
     return
     
@@ -226,14 +223,16 @@ def acp(df):
     
 def main():
     #Csv des word embeding de la premiere heure
-    csv2 = 'jultxtVec.csv'
+    #csv2 = 'jultxtVec.csv'
+    #Csv des word embedings des 3M de premiers post
+    csv = "/projets/M2DC/team_JJJP/embeddings/textVec.csv"
     
     #Les donnees de la premiere heure
-    df = get_data_db("../projet reddit/sample.sqlite")
+    #df = get_data_db("../projet reddit/sample.sqlite")
     #Des 3 premiers jours
     #df2 = get_data_db("../projet reddit/sample_3days.sqlite")
     #Chemin de la base de données entiere sur osirim jhuteau
-    #df = get_data_db("/projets/M2DC/data/database.sqlite")
+    df = get_data_db("/projets/M2DC/data/database.sqlite")
     
     #Ajout de features :
     df = addTailleBody(df)
@@ -242,7 +241,7 @@ def main():
     
     #df = addParentUps(df)
     
-    df = addWordEmbeding(df,csv2)
+    df = addWordEmbeding(df,csv)
     
     #Modification des features de word embedings
     #df = acp(df)
