@@ -162,7 +162,8 @@ def prepareEmbeddingSet():
             en+=1
             if en%100000==0:
                 print(en)
-    
+	    if en==3000000:
+		return    
 
 def getAllSubReddits():
     '''
@@ -280,7 +281,7 @@ def prepareUserEmbeddingsOnline():
     vcols = [str(i) for i in range(200)]
     cols = np.append(np.array(['id','user','subr']), vcols)
     print("Cleaning text files...",flush=True)
-    query = "SELECT id, author, subreddit_id, body FROM May2015, limit 10000000"
+    query = "SELECT id, author, subreddit_id, body FROM May2015 LIMIT 3000000"
     results = db.execute(query)
     count = 0
     batch, dfbatch = [], []

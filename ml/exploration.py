@@ -225,31 +225,33 @@ def acp(df):
     
     
 def main():
-	#Csv des word embeding de la premiere heure
-	#csv2 = 'jultxtVec.csv'
-	
-	#Les donnees de la premiere heure
-	#df = get_data_db("../projet reddit/sample.sqlite")
-	#Des 3 premiers jours
-	#df2 = get_data_db("../projet reddit/sample_3days.sqlite")
-	#Chemin de la base de données entiere sur osirim jhuteau
-	df = get_data_db("/projets/M2DC/data/database.sqlite")
-	
-	#Ajout de features :
-	df = addTailleBody(df)
-	
-	df = addHour(df)
-	
-	#df = addWordEmbeding(df,csv2)
-	
-	#Modification des features de word embedings
-	#df = acp(df)
-		
-	#mcor(df)
+    #Csv des word embeding de la premiere heure
+    csv2 = 'jultxtVec.csv'
+    
+    #Les donnees de la premiere heure
+    df = get_data_db("../projet reddit/sample.sqlite")
+    #Des 3 premiers jours
+    #df2 = get_data_db("../projet reddit/sample_3days.sqlite")
+    #Chemin de la base de données entiere sur osirim jhuteau
+    #df = get_data_db("/projets/M2DC/data/database.sqlite")
+    
+    #Ajout de features :
+    df = addTailleBody(df)
+    
+    df = addHour(df)
+    
+    #df = addParentUps(df)
+    
+    df = addWordEmbeding(df,csv2)
+    
+    #Modification des features de word embedings
+    #df = acp(df)
+        
+    #mcor(df)
 
-	bodyVectorise(df)
-	
-	return
+    bodyVectorise(df)
+    
+    return
 
 if __name__ == '__main__':
     main()
