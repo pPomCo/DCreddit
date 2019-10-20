@@ -212,6 +212,7 @@ def findUserComment(row, centre_clusters, prefs):
     user = np.array([row[1]]) # id author
     return np.append(user, vuser)
 
+
 def processUserComments(df, centre_clusters, uProf, topK=11):
     '''
     Find nearest topics for a comment user
@@ -346,7 +347,7 @@ def subreddit2vector():
 
     #load emb vectors
     print("Calculating subreddits average...",flush=True)
-    filename = fcomments_embeddings
+    filename = fcomments_embeddingsprepareUser
     for chunk in pd.read_csv(filename, chunksize=chunksize ,sep='\t', header=None):
         sreddit_matrix, count_sreddit_matrix = \
             processComments(chunk, com2sub, le, sreddit_matrix, count_sreddit_matrix)
@@ -458,10 +459,11 @@ def main(argv):
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-db', dest='db')
-    parser.add_argument('-c',  '--comments', action='store_true')
-    parser.add_argument('-s',  '--subreddits', action='store_true')
-    parser.add_argument('-u',  '--users', action='store_true')
+    parser = argparse.ArgumentParser(
+        description='Create clusters and user profiles from database.\nPaths for resources at top of the code.')
+    parser.add_argument('-db', dest='db', help="Database path to read users and comments")
+    parser.add_argument('-c',  '--comments', action='store_true', help="Create CSV file with all comments embeddings.")
+    parser.add_argument('-s',  '--subreddits', action='store_true', help="Find clusters and save variables with the embeddings for each one.")
+    parser.add_argument('-u',  '--users', action='store_true', help="Create file with all user themes embeddings.")
     args = parser.parse_args()
     main(args)

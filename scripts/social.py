@@ -15,8 +15,7 @@ from cleantext import *
 
 
 banned_users = "set(['', '[deleted]', 'AutoModerator', 'autowikibot', 'TweetsInCommentsBot', 'TweetPoster', 'TrollaBot', 'MTGCardFetcher', 'havoc_bot', 'TotesMessenger', 'TheNitromeFan', 'PoliticBot', 'autotldr', 'Late_Night_Grumbler', 'SharksPwn', 'WritingPromptsRobot', 'atomicimploder', 'Marvelvsdc00'])"
- default_path_db= "/projets/M2DC/data/database.sqlite"
-#default_path_db= "/home/jeslev/Downloads/sample_3days.sqlite"
+default_path_db= "/projets/M2DC/data/database.sqlite"
 
 
 def connectDB(db=default_path_db):
@@ -29,6 +28,9 @@ def connectDB(db=default_path_db):
 
 
 def previewDict(mydict):
+    '''
+    Print first 10 key,values of a dictionary
+    '''
     count = 0
     for key, val in mydict.items():
         print(key, val)
@@ -38,8 +40,7 @@ def previewDict(mydict):
 
 def prepareUserMatrix():
     '''
-    Return embedded vector for all subreddit in dataset from Scratch
-    Returns: Save subreddit_matrix and cluster_centers variables
+    Save a matrix with all the interactions between users from the database
     '''
 
     print("Connecting db...",flush=True)
@@ -101,24 +102,33 @@ def prepareUserMatrix():
     
 
 def recommendToUser():
+    '''
+    Search new users to recommend based on the previous interactions
+    '''
     print("Load dictionary")
     with open('socialMatrix.pickle', 'rb') as handle:
         social=pickle.load(handle)
 
     print("Creating matrix recommendation for ", len(social.keys()), " users")
+    topU = 11
     recomMatrix = dict()
     for idx,(user,interactions) in enumerate(social.items()):
 
         totalU = dict()
-        tot = len(list(interactions.keys()))
-        for user2,freq in interactions.items():
+        
+        tot = min(len(list(interactions.keys())),topU)
+        top_users = sorted(interactions.items(), key=lambda kv: kv[1], reverse=True)[:tot] #use only top users
+
+        for user2,freq in top_users:
             #walks through the vector of user2
             sndlvlU = social.get(user2,None)
             if sndlvlU is None:
                 tot-=1
                 continue
 
-            for user3, freq2 in sndlvlU.items():
+            tot2 = min(len(list(interactions.keys())),topU)
+            top_users2 = sorted(sndlvlU.items(), key=lambda kv: kv[1], reverse=True)[:tot2] #use only top users
+            for user3, freq2 in top_users2:
                 totalU[user3] = totalU.get(user3,0)+freq # update weigth
 
         finalRec = dict()
@@ -126,7 +136,8 @@ def recommendToUser():
             finalRec[user2] = freq/tot*1.0
         #previewDict(finalRec)
 
-        sorted_users = sorted(finalRec.items(), key=lambda kv: kv[1], reverse=True)
+        tot3 = min(len(list(finalRec.keys())),topU)
+        sorted_users = sorted(finalRec.items(), key=lambda kv: kv[1], reverse=True)[:min(tot3,topU)]
         myUsers = set(interactions.keys())
         toRecommend = []
         for user2,freq in sorted_users:
@@ -134,7 +145,7 @@ def recommendToUser():
                 continue
             toRecommend.append((user2,freq))
         recomMatrix[user] = toRecommend
-        if idx%100000 == 0:
+        if idx%50000 == 0:
             print(idx,"Users")
             gc.collect()
 
@@ -152,9 +163,11 @@ def main(argv):
         recommendToUser()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-db', dest='db')
-    parser.add_argument('-m',  '--matrix', action='store_true')
-    parser.add_argument('-r',  '--recomm', action='store_true')
+    parser = argparse.ArgumentParser(
+        description='Create social vector user profiles from database.\nPaths for resources at top of the code.')
+
+    parser.add_argument('-db', dest='db', help="Database path to read users and comments.")
+    parser.add_argument('-m',  '--matrix', action='store_true', help="Compute the social matrix (response ratio) between users.")
+    parser.add_argument('-r',  '--recomm', action='store_true', help="Returns a list of recommended user to follow for each user.")
     args = parser.parse_args()
     main(args)
