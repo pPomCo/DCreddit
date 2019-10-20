@@ -1,7 +1,7 @@
 # Embeddings
 
 ## embeddings.py
-```js
+```
 > python3 embeddings.py -h
 usage: embeddings.py [-h] [-db DB] [-c] [-s] [-u]
 
@@ -20,7 +20,7 @@ optional arguments:
 
 ## social.py
 
-```js
+```
 >python3 social.py -h
 usage: social.py [-h] [-db DB] [-m] [-r]
 
@@ -34,3 +34,26 @@ optional arguments:
   -r, --recomm  Returns a list of recommended user to follow for each user.
 ```
 
+## searcher.py
+```
+>python3 searcher.py -h
+usage: searcher.py [-h] [--ndocs [NDOCS]] [--sim [SIM]] [--reorder [REORDER]]
+                   [--user [USER]] [--testFile [TESTFILE]] [--short]
+                   dir
+
+Execute personalised queries on comment body
+
+positional arguments:
+  dir                   Index directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --ndocs [NDOCS]       Number of documents to return for each query
+  --sim [SIM]           Similarity (in [tfidf, lm, bm25])
+  --reorder [REORDER]   Reordering (in [ups, normups, profile])
+  --user [USER]         User to pick from database
+  --testFile [TESTFILE]
+                        Path of qrel file
+  --short               Don't show the body of comments
+
+```
